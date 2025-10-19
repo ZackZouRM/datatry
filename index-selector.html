@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Knowledge Universe - Version Selector</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --space-black: #0A0E1A;
+            --star-white: #E8E6D9;
+            --energy-cyan: #4DD4E8;
+            --nebula-blue: #1B4D89;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--space-black);
+            color: var(--star-white);
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* CRT扫描线效果 */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: repeating-linear-gradient(
+                0deg,
+                rgba(232, 230, 217, 0.03),
+                rgba(232, 230, 217, 0.03) 1px,
+                transparent 1px,
+                transparent 2px
+            );
+            pointer-events: none;
+            z-index: 9999;
+            opacity: 0.3;
+        }
+
+        .stars-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+        }
+
+        .star {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: var(--star-white);
+            border-radius: 50%;
+            animation: twinkle 3s ease-in-out infinite;
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; }
+        }
+
+        .selector-container {
+            position: relative;
+            z-index: 10;
+            text-align: center;
+        }
+
+        h1 {
+            font-family: 'Orbitron', monospace;
+            font-size: 48px;
+            font-weight: 900;
+            color: var(--star-white);
+            text-shadow: 0 0 20px rgba(77, 212, 232, 0.6);
+            letter-spacing: 0.1em;
+            margin-bottom: 20px;
+        }
+
+        .subtitle {
+            font-size: 18px;
+            color: rgba(232, 230, 217, 0.7);
+            margin-bottom: 60px;
+            letter-spacing: 0.1em;
+        }
+
+        .version-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 40px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .version-card {
+            padding: 50px 40px;
+            background: rgba(31, 35, 46, 0.8);
+            backdrop-filter: blur(30px);
+            border: 2px solid rgba(77, 212, 232, 0.4);
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.4s ease;
+            text-decoration: none;
+            display: block;
+        }
+
+        .version-card:hover {
+            transform: translateY(-10px);
+            border-color: var(--energy-cyan);
+            box-shadow: 0 20px 60px rgba(77, 212, 232, 0.4);
+        }
+
+        .version-icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+            display: block;
+            filter: drop-shadow(0 4px 12px rgba(77, 212, 232, 0.5));
+        }
+
+        .version-name {
+            font-family: 'Orbitron', monospace;
+            font-size: 28px;
+            font-weight: bold;
+            color: var(--energy-cyan);
+            margin-bottom: 15px;
+            letter-spacing: 0.05em;
+        }
+
+        .version-desc {
+            font-size: 14px;
+            color: rgba(232, 230, 217, 0.7);
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        .version-status {
+            display: inline-block;
+            padding: 6px 16px;
+            background: rgba(77, 212, 232, 0.2);
+            border: 1px solid var(--energy-cyan);
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            color: var(--energy-cyan);
+            text-transform: uppercase;
+        }
+
+        .version-status.coming-soon {
+            background: rgba(244, 167, 66, 0.2);
+            border-color: #F4A742;
+            color: #F4A742;
+        }
+
+        .features-list {
+            list-style: none;
+            padding: 0;
+            margin-top: 20px;
+            text-align: left;
+        }
+
+        .features-list li {
+            padding: 8px 0;
+            color: rgba(232, 230, 217, 0.8);
+            font-size: 13px;
+        }
+
+        .features-list li::before {
+            content: '✓ ';
+            color: var(--energy-cyan);
+            font-weight: bold;
+            margin-right: 8px;
+        }
+
+        .version-card.disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .version-card.disabled:hover {
+            transform: none;
+            box-shadow: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="stars-bg" id="starsBg"></div>
+
+    <div class="selector-container">
+        <h1>KNOWLEDGE UNIVERSE</h1>
+        <p class="subtitle">Choose Your Visual Style</p>
+
+        <div class="version-grid">
+            <!-- Star Version -->
+            <a href="index.html" class="version-card">
+                <span class="version-icon">🌟</span>
+                <h2 class="version-name">STAR VERSION</h2>
+                <p class="version-desc">
+                    70s Star Wars retro style with cosmic planets and space navigation
+                </p>
+                <span class="version-status">Available</span>
+                
+                <ul class="features-list">
+                    <li>Retro space aesthetics</li>
+                    <li>Flying universe intro</li>
+                    <li>Planet-based knowledge graph</li>
+                    <li>Energy flow animations</li>
+                    <li>Cosmic navigation</li>
+                </ul>
+            </a>
+
+            <!-- Susu Version -->
+            <a href="index-susu.html" class="version-card">
+                <span class="version-icon">🌻</span>
+                <h2 class="version-name">SUSU VERSION</h2>
+                <p class="version-desc">
+                    Clean card-based layout with practical data visualization (white + blue-green theme)
+                </p>
+                <span class="version-status">Available</span>
+                
+                <ul class="features-list">
+                    <li>White background + blue-green accents</li>
+                    <li>Card-based data display</li>
+                    <li>Three-column layout</li>
+                    <li>More information density</li>
+                    <li>Clean and practical</li>
+                </ul>
+            </a>
+        </div>
+    </div>
+
+    <script>
+        // Generate stars
+        const starsBg = document.getElementById('starsBg');
+        for (let i = 0; i < 150; i++) {
+            const star = document.createElement('div');
+            star.className = 'star';
+            star.style.left = Math.random() * 100 + '%';
+            star.style.top = Math.random() * 100 + '%';
+            star.style.animationDelay = Math.random() * 3 + 's';
+            starsBg.appendChild(star);
+        }
+    </script>
+</body>
+</html>
+

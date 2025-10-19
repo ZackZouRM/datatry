@@ -3,48 +3,38 @@
 // 每种类型都有多张卡片，信息丰富均匀
 // ============================================
 
-// 布局配置（缩小卡片尺寸，确保不重叠）
+// 布局配置（扩散到整个画布）
 const LAYOUT = {
-  CARD_W: 120,  // 缩小到原来的一半
-  CARD_H: 90,   // 缩小到原来的一半
-  CORE_W: 140,  // 核心卡片也缩小
-  GAP_X: 160,   // 适当的水平间距
-  GAP_Y: 120,   // 适当的垂直间距
-  START_X: 100,  // 起始X位置
-  START_Y: 150   // 起始Y位置，给顶部面板留空间
+  CARD_W: 240,
+  CARD_H: 180,
+  CORE_W: 280,
+  GAP_X: 200,  // 增大间距，向两边扩散
+  GAP_Y: 110,
+  START_X: 100,
+  START_Y: 80
 };
 
-// 固定偏移模式（制造更大的错落感）
+// 固定偏移模式（制造落差，不是随机）
 const offsetPatterns = [
-  { dx: -15, dy: -20 },
-  { dx: 20, dy: -15 },
-  { dx: -10, dy: 25 },
-  { dx: 15, dy: 15 },
-  { dx: 0, dy: -25 },
-  { dx: 25, dy: 5 },
+  { dx: -18, dy: -15 },
+  { dx: 15, dy: -18 },
+  { dx: -12, dy: 20 },
+  { dx: 18, dy: 12 },
+  { dx: 0, dy: -22 },
+  { dx: 22, dy: 0 },
   { dx: -20, dy: 10 },
-  { dx: 10, dy: -18 },
-  { dx: -8, dy: 20 },
-  { dx: 18, dy: -10 },
-  { dx: -12, dy: 0 },
-  { dx: 5, dy: 18 },
-  { dx: -18, dy: -8 },
-  { dx: 22, dy: 12 },
-  { dx: -5, dy: -22 },
-  { dx: 12, dy: 8 },
-  { dx: -22, dy: 15 },
-  { dx: 8, dy: -12 },
-  { dx: -15, dy: 18 },
-  { dx: 20, dy: -5 }
+  { dx: 10, dy: -15 },
+  { dx: -10, dy: 18 },
+  { dx: 15, dy: -10 }
 ];
 
-// 卡片数据（重新分配到整个画布，更均匀分布）
+// 卡片数据（重新分配到整个画布，6列x5行）
 const cards = [
   // === Row 0 (顶部，分散) ===
   { id: 'events', title: 'User Events', type: 'Data', badge: '94%', row: 0, col: 0,
     stats: { 'Total': '156.2K', 'Users': '45.9K', 'Avg': '3.4', 'Mobile': '62%' } },
   
-  { id: 'revenue-kpi', title: 'Revenue Dashboard', type: 'KPI', cardType: 'kpi', badge: 'Live', row: 0, col: 1, width: 130, height: 120,
+  { id: 'revenue-kpi', title: 'Revenue Dashboard', type: 'KPI', cardType: 'kpi', badge: 'Live', row: 0, col: 1.8, width: 260, height: 240,
     content: {
       metrics: [
         { label: 'Total Revenue', value: '$1.24M', trend: 'up', change: '+18%' },
@@ -55,10 +45,10 @@ const cards = [
     }
   },
   
-  { id: 'orders', title: 'Orders', type: 'Data', badge: '89%', row: 0, col: 2,
+  { id: 'orders', title: 'Orders', type: 'Data', badge: '89%', row: 0, col: 3.5,
     stats: { 'Total': '23.6K', 'Revenue': '$1.2M', 'AOV': '$52.85', 'Rate': '87%' } },
   
-  { id: 'content-calendar', title: 'Content Pipeline', type: 'Checklist', cardType: 'checklist', badge: '5/8', row: 0, col: 3, width: 130, height: 120,
+  { id: 'content-calendar', title: 'Content Pipeline', type: 'Checklist', cardType: 'checklist', badge: '5/8', row: 0, col: 5.2, width: 260, height: 240,
     content: {
       items: [
         { done: true, text: 'Blog: Email best practices' },
@@ -73,14 +63,14 @@ const cards = [
     }
   },
   
-  { id: 'growth-plan', title: 'Q2 Growth Strategy', type: 'Document', cardType: 'document', row: 0, col: 4, width: 150, height: 130,
+  { id: 'growth-plan', title: 'Q2 Growth Strategy', type: 'Document', cardType: 'document', row: 0, col: 7, width: 300, height: 260,
     content: { text: 'Focus on email marketing retention. Target: +15% by EOQ2.\n\nKey Initiatives:\n• Cart abandonment campaign\n• Loyalty program launch\n• Personalized recommendations\n• Mobile app optimization' } },
   
   // === Row 1 (次顶部) ===
   { id: 'sessions', title: 'Sessions', type: 'Data', badge: '91%', row: 1, col: 0,
     stats: { 'Total': '445K', 'Duration': '8.3min', 'Pages': '4.2', 'Bounce': '34%' } },
   
-  { id: 'q2-tasks', title: 'Q2 Action Items', type: 'Checklist', cardType: 'checklist', badge: '4/9', row: 1, col: 1, width: 135, height: 130,
+  { id: 'q2-tasks', title: 'Q2 Action Items', type: 'Checklist', cardType: 'checklist', badge: '4/9', row: 1, col: 1.8, width: 270, height: 260,
     content: {
       items: [
         { done: true, text: 'Analyze cohort retention' },
@@ -96,7 +86,7 @@ const cards = [
     }
   },
   
-  { id: 'campaign-assets', title: 'Campaign Assets', type: 'Media', cardType: 'media', badge: '24 items', row: 1, col: 2, width: 150, height: 140,
+  { id: 'campaign-assets', title: 'Campaign Assets', type: 'Media', cardType: 'media', badge: '24 items', row: 1, col: 3.5, width: 300, height: 280,
     content: {
       images: [
         { url: 'pic/45124a81-d220-4b99-8d73-5a02ee5e68ef.webp', name: 'Summer Sale Banner' },
@@ -110,7 +100,7 @@ const cards = [
   },
   
   // === Row 2 (中心行，Core在这) ===
-  { id: 'product-photos', title: 'Product Photography', type: 'Media', cardType: 'media', badge: '156 items', row: 2, col: 0, width: 130, height: 110,
+  { id: 'product-photos', title: 'Product Photography', type: 'Media', cardType: 'media', badge: '156 items', row: 2, col: 0, width: 260, height: 220,
     content: {
       images: [
         { url: 'pic/f21e953a-e369-4c7b-ae17-acb282b2094d.webp', name: 'Product A' },
@@ -121,10 +111,10 @@ const cards = [
     }
   },
   
-  { id: 'core', title: 'Growth Metrics', type: 'Core', badge: '100%', row: 2, col: 2, isCore: true,
+  { id: 'core', title: 'Growth Metrics', type: 'Core', badge: '100%', row: 2, col: 3, isCore: true,
     stats: { 'Growth': '+28.4%', 'Users': '45.9K', 'Revenue': '$1.24M', 'Conv': '10.7%' } },
   
-  { id: 'user-engagement', title: 'User Engagement', type: 'KPI', cardType: 'kpi', badge: 'Live', row: 2, col: 3, width: 130, height: 120,
+  { id: 'user-engagement', title: 'User Engagement', type: 'KPI', cardType: 'kpi', badge: 'Live', row: 2, col: 5.5, width: 260, height: 240,
     content: {
       metrics: [
         { label: 'DAU', value: '12.4K', trend: 'up', change: '+8%' },
@@ -135,11 +125,11 @@ const cards = [
     }
   },
   
-  { id: 'competitor-analysis', title: 'Competitor Analysis', type: 'Document', cardType: 'document', row: 1, col: 3, width: 140, height: 110,
+  { id: 'competitor-analysis', title: 'Competitor Analysis', type: 'Document', cardType: 'document', row: 2, col: 7.2, width: 280, height: 220,
     content: { text: 'Market positioning review vs top 3 competitors.\n\nKey Findings:\n• Price advantage: 12%\n• Feature parity: 85%\n• Brand awareness gap\n• Opportunity in mid-market' } },
   
   // === Row 3 (次底部) ===
-  { id: 'optimization-tasks', title: 'Website Optimization', type: 'Checklist', cardType: 'checklist', badge: '2/6', row: 3, col: 0, width: 140, height: 110,
+  { id: 'optimization-tasks', title: 'Website Optimization', type: 'Checklist', cardType: 'checklist', badge: '2/6', row: 3, col: 0, width: 280, height: 220,
     content: {
       items: [
         { done: true, text: 'Mobile page speed audit' },
@@ -152,7 +142,7 @@ const cards = [
     }
   },
   
-  { id: 'video-content', title: 'Video Library', type: 'Media', cardType: 'media', badge: '12 videos', row: 3, col: 1, width: 140, height: 110,
+  { id: 'video-content', title: 'Video Library', type: 'Media', cardType: 'media', badge: '12 videos', row: 3, col: 2, width: 280, height: 220,
     content: {
       images: [
         { url: 'pic/694d124e-4c6a-4b80-af1b-1be91708fe38.webp', name: 'How-to Video' },
@@ -163,10 +153,10 @@ const cards = [
     }
   },
   
-  { id: 'roadmap', title: 'Product Roadmap H2', type: 'Document', cardType: 'document', row: 3, col: 2, width: 150, height: 100,
+  { id: 'roadmap', title: 'Product Roadmap H2', type: 'Document', cardType: 'document', row: 3, col: 4.2, width: 300, height: 200,
     content: { text: 'H2 2024 Development Plan\n\n• Q3: Mobile redesign\n• Q3: Payment options expansion\n• Q4: Personalization engine\n• Q4: Analytics dashboard v2' } },
   
-  { id: 'conversion-funnel', title: 'Conversion Metrics', type: 'KPI', cardType: 'kpi', badge: 'Live', row: 3, col: 3, width: 130, height: 120,
+  { id: 'conversion-funnel', title: 'Conversion Metrics', type: 'KPI', cardType: 'kpi', badge: 'Live', row: 3, col: 6.5, width: 260, height: 240,
     content: {
       metrics: [
         { label: 'Visit→Cart', value: '12.5%', trend: 'up', change: '+2%' },
@@ -181,17 +171,143 @@ const cards = [
   { id: 'users', title: 'User Profiles', type: 'Data', badge: '87%', row: 4, col: 0,
     stats: { 'Total': '45.9K', 'New': '28.3K', 'Active': '68%', 'Retention': '72%' } },
   
-  { id: 'marketing', title: 'Marketing Channels', type: 'Data', badge: '78%', row: 4, col: 1,
+  { id: 'marketing', title: 'Marketing Channels', type: 'Data', badge: '78%', row: 4, col: 2,
     stats: { 'Channels': '8', 'CAC': '$45', 'ROI': '3.2x', 'Top': 'Email' } },
   
-  { id: 'products', title: 'Product Catalog', type: 'Data', badge: '72%', row: 4, col: 2,
+  { id: 'products', title: 'Product Catalog', type: 'Data', badge: '72%', row: 4, col: 4,
     stats: { 'SKUs': '1,234', 'Categories': '8', 'Top': 'Electronics', 'Price': '$87' } },
   
-  { id: 'payments', title: 'Payment Methods', type: 'Data', badge: '85%', row: 4, col: 3,
+  { id: 'payments', title: 'Payment Methods', type: 'Data', badge: '85%', row: 4, col: 6,
     stats: { 'Methods': '6', 'Success': '96%', 'Avg Time': '45s', 'Failed': '4%' } },
   
-  { id: 'customer-insights', title: 'Customer Research Notes', type: 'Document', cardType: 'document', row: 4, col: 4, width: 145, height: 115,
+  { id: 'customer-insights', title: 'Customer Research Notes', type: 'Document', cardType: 'document', row: 4, col: 8, width: 290, height: 230,
     content: { text: 'User interview synthesis (N=25)\n\nTop Pain Points:\n• Checkout too complex (60%)\n• Shipping clarity needed (45%)\n• Mobile UX issues (38%)\n• Search functionality (32%)' } }
+];
+
+// 连接关系（精简）
+const connections = [
+    content: { text: 'Market positioning review vs top 3 competitors.\n\nKey Findings:\n• Price advantage: 12%\n• Feature parity: 85%\n• Brand awareness gap\n• Opportunity in mid-market' } },
+  
+  { id: 'customer-insights', title: 'Customer Research Notes', type: 'Document', cardType: 'document', row: 4, col: 0, width: 290, height: 230,
+    content: { text: 'User interview synthesis (N=25)\n\nTop Pain Points:\n• Checkout too complex (60%)\n• Shipping clarity needed (45%)\n• Mobile UX issues (38%)\n• Search functionality (32%)' } },
+  
+  { id: 'roadmap', title: 'Product Roadmap H2', type: 'Document', cardType: 'document', row: 3, col: 4, width: 300, height: 200,
+    content: { text: 'H2 2024 Development Plan\n\n• Q3: Mobile redesign\n• Q3: Payment options expansion\n• Q4: Personalization engine\n• Q4: Analytics dashboard v2' } },
+  
+  // === Media类 (3张) ===
+  { id: 'campaign-assets', title: 'Campaign Assets', type: 'Media', cardType: 'media', badge: '24 items', row: 1, col: 4, width: 300, height: 280,
+    content: {
+      images: [
+        { url: 'pic/45124a81-d220-4b99-8d73-5a02ee5e68ef.webp', name: 'Summer Sale Banner' },
+        { url: 'pic/5f57e1af-4c4a-455a-877e-3a44c1ef67f8.webp', name: 'Product Hero' },
+        { url: 'pic/694d124e-4c6a-4b80-af1b-1be91708fe38.webp', name: 'Email Header' },
+        { url: 'pic/a9216aeb-9e6b-4e11-821b-a153aee065f8.webp', name: 'Social Post' },
+        { url: 'pic/acbf268e-f06c-4e7e-8250-034ae605a4c8.webp', name: 'Landing Page' },
+        { url: 'pic/d04b644f-d314-4401-ac0a-b4cbc0723a2c.webp', name: 'Newsletter' }
+      ]
+    }
+  },
+  
+  { id: 'product-photos', title: 'Product Photography', type: 'Media', cardType: 'media', badge: '156 items', row: 2, col: 0, width: 260, height: 220,
+    content: {
+      images: [
+        { url: 'pic/f21e953a-e369-4c7b-ae17-acb282b2094d.webp', name: 'Product A' },
+        { url: 'pic/output (1) (1).webp', name: 'Product B' },
+        { url: 'pic/45124a81-d220-4b99-8d73-5a02ee5e68ef.webp', name: 'Product C' },
+        { url: 'pic/5f57e1af-4c4a-455a-877e-3a44c1ef67f8.webp', name: 'Product D' }
+      ]
+    }
+  },
+  
+  { id: 'video-content', title: 'Video Library', type: 'Media', cardType: 'media', badge: '12 videos', row: 3, col: 2, width: 280, height: 220,
+    content: {
+      images: [
+        { url: 'pic/694d124e-4c6a-4b80-af1b-1be91708fe38.webp', name: 'How-to Video' },
+        { url: 'pic/a9216aeb-9e6b-4e11-821b-a153aee065f8.webp', name: 'Testimonial' },
+        { url: 'pic/acbf268e-f06c-4e7e-8250-034ae605a4c8.webp', name: 'Product Demo' },
+        { url: 'pic/d04b644f-d314-4401-ac0a-b4cbc0723a2c.webp', name: 'Tutorial' }
+      ]
+    }
+  },
+  
+  // === Checklist类 (3张) ===
+  { id: 'q2-tasks', title: 'Q2 Action Items', type: 'Checklist', cardType: 'checklist', badge: '4/9', row: 1, col: 3, width: 270, height: 260,
+    content: {
+      items: [
+        { done: true, text: 'Analyze cohort retention' },
+        { done: true, text: 'Review channel ROI' },
+        { done: true, text: 'Export Q1 report' },
+        { done: true, text: 'Update pricing strategy' },
+        { done: false, text: 'Launch A/B test framework' },
+        { done: false, text: 'Optimize mobile checkout' },
+        { done: false, text: 'Team strategy meeting' },
+        { done: false, text: 'Review analytics dashboard' },
+        { done: false, text: 'Plan Q3 campaigns' }
+      ]
+    }
+  },
+  
+  { id: 'optimization-tasks', title: 'Website Optimization', type: 'Checklist', cardType: 'checklist', badge: '2/6', row: 3, col: 0, width: 280, height: 220,
+    content: {
+      items: [
+        { done: true, text: 'Mobile page speed audit' },
+        { done: true, text: 'Image compression' },
+        { done: false, text: 'Lazy loading implementation' },
+        { done: false, text: 'CDN setup' },
+        { done: false, text: 'Cache optimization' },
+        { done: false, text: 'Bundle size reduction' }
+      ]
+    }
+  },
+  
+  { id: 'content-calendar', title: 'Content Pipeline', type: 'Checklist', cardType: 'checklist', badge: '5/8', row: 0, col: 3, width: 260, height: 240,
+    content: {
+      items: [
+        { done: true, text: 'Blog: Email best practices' },
+        { done: true, text: 'Video: Product showcase' },
+        { done: true, text: 'Social: User testimonials' },
+        { done: true, text: 'Guide: Getting started' },
+        { done: true, text: 'Infographic: Q1 results' },
+        { done: false, text: 'Webinar: Growth strategies' },
+        { done: false, text: 'Case study: Success story' },
+        { done: false, text: 'Newsletter: Monthly recap' }
+      ]
+    }
+  },
+  
+  // === KPI类 (3张) ===
+  { id: 'revenue-kpi', title: 'Revenue Dashboard', type: 'KPI', cardType: 'kpi', badge: 'Live', row: 0, col: 1, width: 260, height: 240,
+    content: {
+      metrics: [
+        { label: 'Total Revenue', value: '$1.24M', trend: 'up', change: '+18%' },
+        { label: 'MRR', value: '$156K', trend: 'up', change: '+12%' },
+        { label: 'ARPU', value: '$27.50', trend: 'up', change: '+3%' },
+        { label: 'Churn', value: '4.2%', trend: 'down', change: '-1.1%' }
+      ]
+    }
+  },
+  
+  { id: 'user-engagement', title: 'User Engagement', type: 'KPI', cardType: 'kpi', badge: 'Live', row: 2, col: 3, width: 260, height: 240,
+    content: {
+      metrics: [
+        { label: 'DAU', value: '12.4K', trend: 'up', change: '+8%' },
+        { label: 'Session Time', value: '8.3min', trend: 'up', change: '+15%' },
+        { label: 'Retention D7', value: '42%', trend: 'up', change: '+5%' },
+        { label: 'Stickiness', value: '28%', trend: 'up', change: '+2%' }
+      ]
+    }
+  },
+  
+  { id: 'conversion-funnel', title: 'Conversion Metrics', type: 'KPI', cardType: 'kpi', badge: 'Live', row: 4, col: 2, width: 260, height: 240,
+    content: {
+      metrics: [
+        { label: 'Visit→Cart', value: '12.5%', trend: 'up', change: '+2%' },
+        { label: 'Cart→Checkout', value: '68%', trend: 'down', change: '-3%' },
+        { label: 'Checkout→Pay', value: '82%', trend: 'up', change: '+4%' },
+        { label: 'Overall CVR', value: '6.9%', trend: 'up', change: '+1%' }
+      ]
+    }
+  }
 ];
 
 // 连接关系（精简，避免混乱）
@@ -240,8 +356,8 @@ function calculateCardPosition(card, index) {
   card.y = baseY + pattern.dy;
   
   // 边界检查（确保不超出viewBox）
-  const maxX = 2000 - card.width - 50;
-  const maxY = 1200 - card.height - 50;
+  const maxX = 2400 - card.width - 50;
+  const maxY = 1400 - card.height - 50;
   
   card.x = Math.max(50, Math.min(card.x, maxX));
   card.y = Math.max(50, Math.min(card.y, maxY));
@@ -264,8 +380,8 @@ cards.forEach((card, index) => {
 
 // State
 let selectedCard = null;
-let zoomLevel = 1;  // 保持原始大小
-let panOffset = { x: 0, y: 0 };  // 不偏移
+let zoomLevel = 1;
+let panOffset = { x: 0, y: 0 };
 
 // ============================================
 // 初始化
@@ -276,10 +392,9 @@ document.addEventListener('DOMContentLoaded', () => {
   renderConnections();
   initEventListeners();
   initZoomAndPan();
-  updateDataOverview();
   
-  // 自动适应视图 - 暂时禁用，避免卡片被缩小
-  // setTimeout(() => fitToView(), 100);
+  // 自动适应视图
+  setTimeout(() => fitToView(), 100);
   
   // 显示初始建议
   setTimeout(() => showInitialSuggestions(), 200);
@@ -794,9 +909,9 @@ window.autoLayout = function() {
   renderCards();
   renderConnections();
   
-  // 不自动缩放，保持原始大小
+  // 自动适应视图
   setTimeout(() => {
-    // fitToView(); // 禁用自动缩放
+    fitToView();
     addMessage('assistant', '✓ Layout reset to default positions');
   }, 100);
 };
@@ -854,105 +969,6 @@ window.deleteCard = function(cardId) {
 };
 
 // ============================================
-// ============================================
-// 数据总览功能
-// ============================================
-
-function updateDataOverview() {
-  // 计算统计数据
-  const totalNodes = cards.length;
-  const dataCards = cards.filter(c => c.type === 'Data').length;
-  const documentCards = cards.filter(c => c.type === 'Document').length;
-  const mediaCards = cards.filter(c => c.type === 'Media').length;
-  const kpiCards = cards.filter(c => c.type === 'KPI').length;
-  const checklistCards = cards.filter(c => c.type === 'Checklist').length;
-  
-  // 计算主体数（不同类型）
-  const subjects = new Set(cards.map(c => c.type)).size;
-  
-  // 计算数据饱和度（基于badge值）
-  let totalSaturation = 0;
-  let saturationCount = 0;
-  cards.forEach(card => {
-    if (card.badge && card.badge.includes('%')) {
-      const value = parseInt(card.badge.replace('%', ''));
-      totalSaturation += value;
-      saturationCount++;
-    }
-  });
-  const avgSaturation = saturationCount > 0 ? Math.round(totalSaturation / saturationCount) : 78;
-  
-  // 计算数据量（模拟）
-  const dataSize = (totalNodes * 0.057).toFixed(1) + 'GB';
-  
-  // 更新DOM
-  document.getElementById('dataSaturation').textContent = avgSaturation + '%';
-  document.getElementById('totalSubjects').textContent = subjects;
-  document.getElementById('totalNodes').textContent = totalNodes;
-  document.getElementById('totalDataSize').textContent = dataSize;
-  
-  // 更新饱和度进度条
-  const saturationFill = document.querySelector('.saturation-fill');
-  if (saturationFill) {
-    saturationFill.style.width = avgSaturation + '%';
-  }
-}
-
-// 处理数据上传
-window.handleUploadData = function() {
-  // 创建一个隐藏的文件输入
-  const input = document.createElement('input');
-  input.type = 'file';
-  input.multiple = true;
-  input.accept = '.csv,.json,.xlsx,.txt';
-  
-  input.onchange = (e) => {
-    const files = e.target.files;
-    if (files.length > 0) {
-      // 模拟上传效果
-      const uploadBtn = document.querySelector('.btn-upload-data');
-      const originalText = uploadBtn.innerHTML;
-      uploadBtn.innerHTML = '<span>上传中...</span>';
-      uploadBtn.disabled = true;
-      
-      setTimeout(() => {
-        // 添加新卡片（模拟）
-        const newCard = {
-          id: 'upload-' + Date.now(),
-          title: files[0].name.split('.')[0],
-          type: 'Data',
-          badge: '95%',
-          row: 1,
-          col: 8,
-          stats: { 
-            'Size': (files[0].size / 1024 / 1024).toFixed(2) + 'MB',
-            'Type': files[0].name.split('.').pop().toUpperCase(),
-            'Rows': Math.floor(Math.random() * 10000) + 'K',
-            'Status': 'Ready'
-          }
-        };
-        
-        cards.push(newCard);
-        calculateCardPosition(newCard, cards.length - 1);
-        
-        // 重新渲染
-        renderCards();
-        renderConnections();
-        updateDataOverview();
-        
-        // 恢复按钮
-        uploadBtn.innerHTML = originalText;
-        uploadBtn.disabled = false;
-        
-        // 显示成功消息
-        addMessage('assistant', `成功上传文件 "${files[0].name}"！已创建新的数据节点。数据饱和度提升至 ${document.getElementById('dataSaturation').textContent}。`);
-      }, 1500);
-    }
-  };
-  
-  input.click();
-}
-
 // 会话
 // ============================================
 
