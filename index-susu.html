@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Knowledge Universe - Susu Version</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles-susu.css">
+</head>
+<body>
+    <!-- Top Navigation -->
+    <header class="top-nav">
+        <div class="nav-left">
+            <span class="universe-name" id="universeNameNav">Q1 Growth Analysis</span>
+        </div>
+        <div class="nav-right">
+            <button class="btn-icon" title="Messages">
+                💬
+                <span class="message-count" id="messageCount">0</span>
+            </button>
+            <button class="btn-icon" title="Settings">⚙</button>
+            <button class="btn-icon profile-menu-btn" title="Profile" id="profileMenuBtn">
+                @Sarah
+            </button>
+            
+            <!-- Profile Dropdown Menu -->
+            <div class="profile-dropdown hidden" id="profileDropdown">
+                <a href="index-selector.html" class="dropdown-item">
+                    <span>⇄</span>
+                    <span>Switch Version (Susu)</span>
+                </a>
+                <div class="dropdown-divider"></div>
+                <div class="dropdown-item" onclick="alert('Profile settings')">
+                    <span>⚙</span>
+                    <span>Settings</span>
+                </div>
+                <div class="dropdown-item" onclick="alert('Logout')">
+                    <span>↗</span>
+                    <span>Logout</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Layout: Left-Right -->
+    <div class="main-layout">
+        <!-- Left: Card Network Canvas (All in SVG) -->
+        <div class="card-network-canvas">
+            <!-- 数据总览面板 -->
+            <div class="data-overview-panel">
+                <div class="overview-stats">
+                    <div class="stat-item">
+                        <span class="stat-label">Data Saturation</span>
+                        <span class="stat-value" id="dataSaturation">78%</span>
+                        <div class="saturation-bar">
+                            <div class="saturation-fill" style="width: 78%"></div>
+                        </div>
+                    </div>
+                    <div class="stat-divider"></div>
+                    <div class="stat-item">
+                        <span class="stat-label">Subjects</span>
+                        <span class="stat-value" id="totalSubjects">5</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Nodes</span>
+                        <span class="stat-value" id="totalNodes">21</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Data Size</span>
+                        <span class="stat-value" id="totalDataSize">1.2GB</span>
+                    </div>
+                </div>
+                <button class="btn-upload-data" onclick="handleUploadData()">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                        <path d="M8 10V3M8 3L5 6M8 3L11 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        <path d="M3 10V13H13V10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                    </svg>
+                    <span>Upload Data</span>
+                </button>
+            </div>
+            
+            <!-- 左上角工具栏 -->
+            <div class="canvas-toolbar">
+                <button class="toolbar-btn" id="createViewBtn">
+                    <span>+</span>
+                    <span>Create View</span>
+                </button>
+                <button class="toolbar-btn secondary" id="autoLayoutBtn" onclick="autoLayout()">
+                    <span>⚡</span>
+                    <span>Auto Layout</span>
+                </button>
+            </div>
+            
+            <svg class="unified-svg" id="unifiedSvg" viewBox="0 0 2000 1200">
+                <!-- Connection lines (底层) -->
+                <g id="connectionsGroup">
+                    <!-- Connection lines will be added by JS -->
+                </g>
+                
+                <!-- Cards (上层，使用foreignObject) -->
+                <g id="cardsGroup">
+                    <!-- Cards will be added by JS as foreignObject -->
+                    </g>
+                </svg>
+        </div>
+
+        <!-- Right: Chat Panel -->
+        <div class="info-panel">
+            <div class="chat-header">
+                <h3>🤖 AI Assistant</h3>
+            </div>
+            
+            <div class="chat-messages" id="chatMessages">
+                <!-- 初始建议消息由JS生成 -->
+            </div>
+            
+            <div class="chat-input-container">
+                <!-- 快捷操作栏（浮在输入框上方） -->
+                <div class="quick-actions-bar" id="quickActionsBar">
+                    <button class="quick-action-btn" id="btnAdvice">
+                        <span>✨</span>
+                        <span>Get AI Suggestions</span>
+                    </button>
+                </div>
+                
+                <!-- 输入框 -->
+                <div class="chat-input-wrapper">
+                    <!-- 附件标签容器（在输入框内） -->
+                    <div class="input-attachments" id="inputAttachments"></div>
+                    
+                    <textarea 
+                        class="chat-input" 
+                        placeholder="Ask me anything about your data..."
+                        rows="3"
+                    ></textarea>
+                    
+                    <button class="btn-send">→</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+            
+    <!-- Create View Modal -->
+    <div class="view-modal" id="viewModal">
+        <div class="view-modal-backdrop" onclick="closeViewModal()"></div>
+        <div class="view-modal-content">
+            <div class="view-modal-header">
+                <h3>Create New View</h3>
+                <button class="modal-close-btn" onclick="closeViewModal()">×</button>
+            </div>
+            <div class="view-modal-body">
+                <div class="view-templates-grid">
+                    <div class="view-template-card" onclick="createView('analytics')">
+                        <div class="template-icon">📊</div>
+                        <div class="template-title">Analytics Dashboard</div>
+                        <div class="template-desc">Standard metrics and KPI tracking</div>
+                    </div>
+                    
+                    <div class="view-template-card" onclick="createView('monitor')">
+                        <div class="template-icon">📈</div>
+                        <div class="template-title">Monitor Dashboard</div>
+                        <div class="template-desc">Real-time data monitoring</div>
+                    </div>
+                    
+                    <div class="view-template-card" onclick="createView('report')">
+                        <div class="template-icon">📝</div>
+                        <div class="template-title">Report Builder</div>
+                        <div class="template-desc">Generate custom reports</div>
+                    </div>
+                    
+                    <div class="view-template-card" onclick="createView('goals')">
+                        <div class="template-icon">🎯</div>
+                        <div class="template-title">Goal Tracking</div>
+                        <div class="template-desc">Monitor KPI progress</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script-susu.js"></script>
+</body>
+</html>
