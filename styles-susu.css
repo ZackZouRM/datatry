@@ -276,8 +276,8 @@ body {
 .stat-item {
   display: flex;
   flex-direction: column;
-  gap: 2px;  /* 缩小间距 */
-  min-width: 40px;  /* 缩小最小宽度 */
+  gap: 4px;
+  min-width: 80px;
 }
 
 .stat-item:first-child {
@@ -285,14 +285,14 @@ body {
 }
 
 .stat-label {
-  font-size: 8px;  /* 缩小标签 */
+  font-size: 11px;
   color: var(--text-light);
   text-transform: uppercase;
-  letter-spacing: 0.3px;
+  letter-spacing: 0.5px;
 }
 
 .stat-value {
-  font-size: 11px;  /* 缩小数值 */
+  font-size: 20px;
   font-weight: 600;
   color: var(--text-primary);
 }
@@ -398,43 +398,12 @@ body {
   height: 100%;
   background: #FFFFFF;
   border: 1px solid var(--border-light);
-  border-radius: 8px;
-  padding: 6px;  /* 缩小内边距 */
+  border-radius: 10px;
+  padding: 16px;  /* 恢复原始内边距 */
   transition: all 0.15s ease-out;
   cursor: pointer;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
   box-sizing: border-box;
-  font-size: 10px;  /* 缩小基础字体 */
-  transform: scale(1);  /* 用于内容缩放 */
-}
-
-/* 卡片内所有文字缩小 */
-.data-card * {
-  font-size: inherit;
-  line-height: 1.2;
-}
-
-.data-card .card-title {
-  font-size: 10px !important;
-}
-
-.data-card .card-type {
-  font-size: 8px !important;
-}
-
-.data-card .card-badge {
-  font-size: 8px !important;
-  padding: 1px 4px !important;
-  top: 4px !important;
-  right: 4px !important;
-}
-
-.data-card .stat-label {
-  font-size: 7px !important;
-}
-
-.data-card .stat-value {
-  font-size: 10px !important;
 }
 
 .data-card:hover {
@@ -651,8 +620,8 @@ body {
 .card-stats {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 4px;  /* 缩小间距 */
-  margin: 4px 0;  /* 缩小边距 */
+  gap: 12px;
+  margin: 12px 0 8px 0;
 }
 
 .stat-item {

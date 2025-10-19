@@ -3,39 +3,39 @@
 // 每种类型都有多张卡片，信息丰富均匀
 // ============================================
 
-// 布局配置（缩小卡片尺寸，确保不重叠）
+// 布局配置（恢复原始大小，错落分布）
 const LAYOUT = {
-  CARD_W: 120,  // 缩小到原来的一半
-  CARD_H: 90,   // 缩小到原来的一半
-  CORE_W: 140,  // 核心卡片也缩小
-  GAP_X: 160,   // 适当的水平间距
-  GAP_Y: 120,   // 适当的垂直间距
-  START_X: 100,  // 起始X位置
-  START_Y: 150   // 起始Y位置，给顶部面板留空间
+  CARD_W: 240,  // 恢复原始宽度
+  CARD_H: 180,  // 恢复原始高度
+  CORE_W: 280,  // 核心卡片原始大小
+  GAP_X: 300,   // 水平间距
+  GAP_Y: 220,   // 垂直间距
+  START_X: 400,  // 起始X位置，让Core在中心
+  START_Y: 300   // 起始Y位置
 };
 
 // 固定偏移模式（制造更大的错落感）
 const offsetPatterns = [
-  { dx: -15, dy: -20 },
-  { dx: 20, dy: -15 },
-  { dx: -10, dy: 25 },
-  { dx: 15, dy: 15 },
-  { dx: 0, dy: -25 },
-  { dx: 25, dy: 5 },
-  { dx: -20, dy: 10 },
-  { dx: 10, dy: -18 },
-  { dx: -8, dy: 20 },
-  { dx: 18, dy: -10 },
-  { dx: -12, dy: 0 },
-  { dx: 5, dy: 18 },
-  { dx: -18, dy: -8 },
-  { dx: 22, dy: 12 },
-  { dx: -5, dy: -22 },
-  { dx: 12, dy: 8 },
-  { dx: -22, dy: 15 },
-  { dx: 8, dy: -12 },
-  { dx: -15, dy: 18 },
-  { dx: 20, dy: -5 }
+  { dx: -40, dy: -50 },
+  { dx: 60, dy: -30 },
+  { dx: -30, dy: 70 },
+  { dx: 45, dy: 40 },
+  { dx: 0, dy: -60 },
+  { dx: 70, dy: 20 },
+  { dx: -50, dy: 30 },
+  { dx: 30, dy: -45 },
+  { dx: -25, dy: 55 },
+  { dx: 50, dy: -25 },
+  { dx: -35, dy: 0 },
+  { dx: 15, dy: 50 },
+  { dx: -45, dy: -20 },
+  { dx: 65, dy: 35 },
+  { dx: -15, dy: -55 },
+  { dx: 35, dy: 25 },
+  { dx: -60, dy: 45 },
+  { dx: 25, dy: -35 },
+  { dx: -40, dy: 60 },
+  { dx: 55, dy: -15 }
 ];
 
 // 卡片数据（重新分配到整个画布，更均匀分布）
@@ -44,7 +44,7 @@ const cards = [
   { id: 'events', title: 'User Events', type: 'Data', badge: '94%', row: 0, col: 0,
     stats: { 'Total': '156.2K', 'Users': '45.9K', 'Avg': '3.4', 'Mobile': '62%' } },
   
-  { id: 'revenue-kpi', title: 'Revenue Dashboard', type: 'KPI', cardType: 'kpi', badge: 'Live', row: 0, col: 1, width: 130, height: 120,
+  { id: 'revenue-kpi', title: 'Revenue Dashboard', type: 'KPI', cardType: 'kpi', badge: 'Live', row: 0, col: 1, width: 260, height: 240,
     content: {
       metrics: [
         { label: 'Total Revenue', value: '$1.24M', trend: 'up', change: '+18%' },
@@ -58,7 +58,7 @@ const cards = [
   { id: 'orders', title: 'Orders', type: 'Data', badge: '89%', row: 0, col: 2,
     stats: { 'Total': '23.6K', 'Revenue': '$1.2M', 'AOV': '$52.85', 'Rate': '87%' } },
   
-  { id: 'content-calendar', title: 'Content Pipeline', type: 'Checklist', cardType: 'checklist', badge: '5/8', row: 0, col: 3, width: 130, height: 120,
+  { id: 'content-calendar', title: 'Content Pipeline', type: 'Checklist', cardType: 'checklist', badge: '5/8', row: 0, col: 3, width: 260, height: 240,
     content: {
       items: [
         { done: true, text: 'Blog: Email best practices' },
@@ -73,14 +73,14 @@ const cards = [
     }
   },
   
-  { id: 'growth-plan', title: 'Q2 Growth Strategy', type: 'Document', cardType: 'document', row: 0, col: 4, width: 150, height: 130,
+  { id: 'growth-plan', title: 'Q2 Growth Strategy', type: 'Document', cardType: 'document', row: 0, col: 4, width: 300, height: 260,
     content: { text: 'Focus on email marketing retention. Target: +15% by EOQ2.\n\nKey Initiatives:\n• Cart abandonment campaign\n• Loyalty program launch\n• Personalized recommendations\n• Mobile app optimization' } },
   
   // === Row 1 (次顶部) ===
   { id: 'sessions', title: 'Sessions', type: 'Data', badge: '91%', row: 1, col: 0,
     stats: { 'Total': '445K', 'Duration': '8.3min', 'Pages': '4.2', 'Bounce': '34%' } },
   
-  { id: 'q2-tasks', title: 'Q2 Action Items', type: 'Checklist', cardType: 'checklist', badge: '4/9', row: 1, col: 1, width: 135, height: 130,
+  { id: 'q2-tasks', title: 'Q2 Action Items', type: 'Checklist', cardType: 'checklist', badge: '4/9', row: 1, col: 1, width: 270, height: 260,
     content: {
       items: [
         { done: true, text: 'Analyze cohort retention' },
@@ -96,7 +96,7 @@ const cards = [
     }
   },
   
-  { id: 'campaign-assets', title: 'Campaign Assets', type: 'Media', cardType: 'media', badge: '24 items', row: 1, col: 2, width: 150, height: 140,
+  { id: 'campaign-assets', title: 'Campaign Assets', type: 'Media', cardType: 'media', badge: '24 items', row: 1, col: 2, width: 300, height: 280,
     content: {
       images: [
         { url: 'pic/45124a81-d220-4b99-8d73-5a02ee5e68ef.webp', name: 'Summer Sale Banner' },
@@ -110,7 +110,7 @@ const cards = [
   },
   
   // === Row 2 (中心行，Core在这) ===
-  { id: 'product-photos', title: 'Product Photography', type: 'Media', cardType: 'media', badge: '156 items', row: 2, col: 0, width: 130, height: 110,
+  { id: 'product-photos', title: 'Product Photography', type: 'Media', cardType: 'media', badge: '156 items', row: 2, col: 0, width: 260, height: 220,
     content: {
       images: [
         { url: 'pic/f21e953a-e369-4c7b-ae17-acb282b2094d.webp', name: 'Product A' },
@@ -124,7 +124,7 @@ const cards = [
   { id: 'core', title: 'Growth Metrics', type: 'Core', badge: '100%', row: 2, col: 2, isCore: true,
     stats: { 'Growth': '+28.4%', 'Users': '45.9K', 'Revenue': '$1.24M', 'Conv': '10.7%' } },
   
-  { id: 'user-engagement', title: 'User Engagement', type: 'KPI', cardType: 'kpi', badge: 'Live', row: 2, col: 3, width: 130, height: 120,
+  { id: 'user-engagement', title: 'User Engagement', type: 'KPI', cardType: 'kpi', badge: 'Live', row: 2, col: 3, width: 260, height: 240,
     content: {
       metrics: [
         { label: 'DAU', value: '12.4K', trend: 'up', change: '+8%' },
@@ -135,11 +135,11 @@ const cards = [
     }
   },
   
-  { id: 'competitor-analysis', title: 'Competitor Analysis', type: 'Document', cardType: 'document', row: 1, col: 3, width: 140, height: 110,
+  { id: 'competitor-analysis', title: 'Competitor Analysis', type: 'Document', cardType: 'document', row: 1, col: 3, width: 280, height: 220,
     content: { text: 'Market positioning review vs top 3 competitors.\n\nKey Findings:\n• Price advantage: 12%\n• Feature parity: 85%\n• Brand awareness gap\n• Opportunity in mid-market' } },
   
   // === Row 3 (次底部) ===
-  { id: 'optimization-tasks', title: 'Website Optimization', type: 'Checklist', cardType: 'checklist', badge: '2/6', row: 3, col: 0, width: 140, height: 110,
+  { id: 'optimization-tasks', title: 'Website Optimization', type: 'Checklist', cardType: 'checklist', badge: '2/6', row: 3, col: 0, width: 280, height: 220,
     content: {
       items: [
         { done: true, text: 'Mobile page speed audit' },
@@ -152,7 +152,7 @@ const cards = [
     }
   },
   
-  { id: 'video-content', title: 'Video Library', type: 'Media', cardType: 'media', badge: '12 videos', row: 3, col: 1, width: 140, height: 110,
+  { id: 'video-content', title: 'Video Library', type: 'Media', cardType: 'media', badge: '12 videos', row: 3, col: 1, width: 280, height: 220,
     content: {
       images: [
         { url: 'pic/694d124e-4c6a-4b80-af1b-1be91708fe38.webp', name: 'How-to Video' },
@@ -163,10 +163,10 @@ const cards = [
     }
   },
   
-  { id: 'roadmap', title: 'Product Roadmap H2', type: 'Document', cardType: 'document', row: 3, col: 2, width: 150, height: 100,
+  { id: 'roadmap', title: 'Product Roadmap H2', type: 'Document', cardType: 'document', row: 3, col: 2, width: 300, height: 200,
     content: { text: 'H2 2024 Development Plan\n\n• Q3: Mobile redesign\n• Q3: Payment options expansion\n• Q4: Personalization engine\n• Q4: Analytics dashboard v2' } },
   
-  { id: 'conversion-funnel', title: 'Conversion Metrics', type: 'KPI', cardType: 'kpi', badge: 'Live', row: 3, col: 3, width: 130, height: 120,
+  { id: 'conversion-funnel', title: 'Conversion Metrics', type: 'KPI', cardType: 'kpi', badge: 'Live', row: 3, col: 3, width: 260, height: 240,
     content: {
       metrics: [
         { label: 'Visit→Cart', value: '12.5%', trend: 'up', change: '+2%' },
@@ -190,7 +190,7 @@ const cards = [
   { id: 'payments', title: 'Payment Methods', type: 'Data', badge: '85%', row: 4, col: 3,
     stats: { 'Methods': '6', 'Success': '96%', 'Avg Time': '45s', 'Failed': '4%' } },
   
-  { id: 'customer-insights', title: 'Customer Research Notes', type: 'Document', cardType: 'document', row: 4, col: 4, width: 145, height: 115,
+  { id: 'customer-insights', title: 'Customer Research Notes', type: 'Document', cardType: 'document', row: 4, col: 4, width: 290, height: 230,
     content: { text: 'User interview synthesis (N=25)\n\nTop Pain Points:\n• Checkout too complex (60%)\n• Shipping clarity needed (45%)\n• Mobile UX issues (38%)\n• Search functionality (32%)' } }
 ];
 
@@ -240,8 +240,8 @@ function calculateCardPosition(card, index) {
   card.y = baseY + pattern.dy;
   
   // 边界检查（确保不超出viewBox）
-  const maxX = 2000 - card.width - 50;
-  const maxY = 1200 - card.height - 50;
+  const maxX = 3000 - card.width - 50;
+  const maxY = 2000 - card.height - 50;
   
   card.x = Math.max(50, Math.min(card.x, maxX));
   card.y = Math.max(50, Math.min(card.y, maxY));
