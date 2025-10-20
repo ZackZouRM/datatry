@@ -968,22 +968,43 @@ function startViewCreationConversation(template, requirements) {
   // Final: View ready with link
   setTimeout(() => {
     const viewLink = `bi-dashboard.html?template=${template.type}&id=${Date.now()}`;
+    
+    // Add text message
     addMessage('assistant', 
       `🎉 **Your ${template.name} is ready!**\n\n` +
       `✨ Successfully created with:\n` +
       `• ${template.type === 'analytics' ? 'Revenue, Users, Conversion metrics' : 'Custom metrics based on your requirements'}\n` +
       `• Interactive visualizations\n` +
       `• Auto-refresh enabled\n\n` +
-      `<a href="${viewLink}" target="_blank" class="view-link-card" onclick="return openViewInNewTab(this.href)">\n` +
-      `  <span class="view-link-icon">${template.icon}</span>\n` +
-      `  <div class="view-link-content">\n` +
-      `    <div class="view-link-title">${template.name}</div>\n` +
-      `    <div class="view-link-desc">Click to open in new tab</div>\n` +
-      `  </div>\n` +
-      `</a>\n\n` +
-      `You can now customize it further or share with your team!`,
-      true  // Allow HTML
+      `You can now customize it further or share with your team!`
     );
+    
+    // Add view link card separately (like suggestions)
+    setTimeout(() => {
+      const container = document.getElementById('chatMessages');
+      const msgDiv = document.createElement('div');
+      msgDiv.className = 'message assistant';
+      const time = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+      
+      msgDiv.innerHTML = `
+        <div class="message-header">
+          <span>🤖 AI</span>
+          <span>${time}</span>
+        </div>
+        <div class="message-content">
+          <a href="${viewLink}" target="_blank" class="view-link-card" onclick="return openViewInNewTab(this.href)">
+            <span class="view-link-icon">${template.icon}</span>
+            <div class="view-link-content">
+              <div class="view-link-title">${template.name}</div>
+              <div class="view-link-desc">Click to open in new tab</div>
+            </div>
+          </a>
+        </div>
+      `;
+      
+      container.appendChild(msgDiv);
+      container.scrollTop = container.scrollHeight;
+    }, 300);
   }, 7500);
 }
 
