@@ -810,29 +810,190 @@ window.closeViewModal = function() {
   if (modal) modal.classList.remove('active');
 };
 
-window.createView = function(viewType) {
-  window.closeViewModal();
-  
-  const viewNames = {
-    'analytics': 'Analytics Dashboard',
-    'monitor': 'Monitor Dashboard',
-    'report': 'Report Builder',
-    'goals': 'Goal Tracking'
+// Store selected template info
+let selectedTemplateInfo = null;
+
+// Template data
+const templateData = {
+  freeform: {
+    name: 'Free Form View',
+    desc: 'Describe your custom view requirements',
+    icon: '✨'
+  },
+  analytics: {
+    name: 'Analytics Dashboard',
+    desc: 'What metrics and KPIs would you like to track?',
+    icon: '📊'
+  },
+  monitor: {
+    name: 'Monitor Dashboard',
+    desc: 'Which real-time metrics should be monitored?',
+    icon: '📈'
+  },
+  report: {
+    name: 'Report Builder',
+    desc: 'What should be included in your report?',
+    icon: '📝'
+  },
+  goals: {
+    name: 'Goal Tracking',
+    desc: 'Define your goals and success criteria',
+    icon: '🎯'
+  },
+  sales: {
+    name: 'Sales Pipeline',
+    desc: 'What sales stages and metrics to track?',
+    icon: '💰'
+  },
+  users: {
+    name: 'User Analytics',
+    desc: 'Which user behaviors to analyze?',
+    icon: '👥'
+  },
+  financial: {
+    name: 'Financial Overview',
+    desc: 'What financial metrics to display?',
+    icon: '💵'
+  },
+  marketing: {
+    name: 'Marketing Performance',
+    desc: 'Which campaigns and channels to track?',
+    icon: '📢'
+  },
+  product: {
+    name: 'Product Metrics',
+    desc: 'Which features and adoption metrics?',
+    icon: '🚀'
+  }
+};
+
+// Select template - show requirements input
+window.selectTemplate = function(templateType) {
+  selectedTemplateInfo = {
+    type: templateType,
+    ...templateData[templateType]
   };
   
-  addMessage('user', `Create ${viewNames[viewType]}`);
+  // Hide templates grid
+  document.getElementById('viewTemplatesGrid').style.display = 'none';
   
+  // Show requirements section
+  const reqSection = document.getElementById('viewRequirementsSection');
+  reqSection.style.display = 'block';
+  
+  // Update header
+  document.getElementById('selectedTemplateName').textContent = selectedTemplateInfo.name;
+  document.getElementById('selectedTemplateDesc').textContent = selectedTemplateInfo.desc;
+  
+  // Clear and focus textarea
+  const textarea = document.getElementById('viewRequirements');
+  textarea.value = '';
+  setTimeout(() => textarea.focus(), 100);
+};
+
+// Back to templates
+window.backToTemplates = function() {
+  document.getElementById('viewRequirementsSection').style.display = 'none';
+  document.getElementById('viewTemplatesGrid').style.display = 'grid';
+  selectedTemplateInfo = null;
+};
+
+// Submit view request - start AI conversation
+window.submitViewRequest = function() {
+  const requirements = document.getElementById('viewRequirements').value.trim();
+  
+  if (!requirements) {
+    alert('Please describe your requirements');
+    return;
+  }
+  
+  // Close modal
+  window.closeViewModal();
+  
+  // Reset modal state
   setTimeout(() => {
-    if (viewType === 'analytics') {
-      addMessage('assistant', `✅ Analytics Dashboard created!\n\n📊 Configured metrics:\n• Revenue trends\n• User growth\n• Conversion rates\n• Channel performance\n\nDashboard is ready for viewing.`);
-    } else if (viewType === 'monitor') {
-      addMessage('assistant', `✅ Monitor Dashboard created!\n\n📈 Real-time tracking:\n• Active users: 1,234\n• Revenue today: $12,450\n• Conversion rate: 3.2%\n\n🔔 Alerts configured for anomalies.`);
-    } else if (viewType === 'report') {
-      addMessage('assistant', `✅ Report Builder ready!\n\n📝 Available sections:\n• Executive summary\n• Detailed metrics\n• Visualizations\n• Recommendations\n\nCustomize and export as PDF.`);
-    } else if (viewType === 'goals') {
-      addMessage('assistant', `✅ Goal Tracking initialized!\n\n🎯 Q2 Goals:\n• Revenue: $500K (77% ████████░░)\n• New Users: 50K (86% ████████▓░)\n• Conversion: 4.5% (84% ████████▓░)\n\nOn track to meet 2/3 goals!`);
-    }
-  }, 500);
+    document.getElementById('viewRequirementsSection').style.display = 'none';
+    document.getElementById('viewTemplatesGrid').style.display = 'grid';
+  }, 300);
+  
+  // Start AI conversation
+  startViewCreationConversation(selectedTemplateInfo, requirements);
+};
+
+// AI conversation for view creation
+function startViewCreationConversation(template, requirements) {
+  // User message
+  addMessage('user', `I want to create a ${template.name}. Requirements:\n\n${requirements}`);
+  
+  // AI Round 1: Clarify requirements
+  setTimeout(() => {
+    addMessage('assistant', `Great! I'll help you create a ${template.name}. Let me clarify a few things:\n\n` +
+      `🎯 **Data Source**: Which datasets should I use?\n` +
+      `📅 **Time Range**: Last 7 days, 30 days, or custom?\n` +
+      `📊 **Visualization**: Prefer charts, tables, or both?\n` +
+      `🔄 **Update Frequency**: Real-time, hourly, or daily?\n\n` +
+      `Please confirm or provide more details.`);
+  }, 800);
+  
+  // Simulated user response
+  setTimeout(() => {
+    addMessage('user', 'Use our analytics dataset, last 30 days, prefer interactive charts, daily updates.');
+  }, 2500);
+  
+  // AI Round 2: Confirm layout
+  setTimeout(() => {
+    addMessage('assistant', `Perfect! Here's what I'm planning:\n\n` +
+      `📊 **Layout Structure**:\n` +
+      `• Top: Key metrics summary (4 KPI cards)\n` +
+      `• Middle: Interactive trend charts\n` +
+      `• Bottom: Detailed data table\n\n` +
+      `🎨 **Visual Style**: Clean, modern with your brand colors\n` +
+      `⚙️ **Features**: Export to PDF, share link, scheduled reports\n\n` +
+      `Does this match your expectations?`);
+  }, 3800);
+  
+  // Simulated user approval
+  setTimeout(() => {
+    addMessage('user', 'Yes, that looks perfect! Please proceed.');
+  }, 5200);
+  
+  // AI Round 3: Generate view
+  setTimeout(() => {
+    addMessage('assistant', `✅ Excellent! Generating your ${template.name}...\n\n` +
+      `⏳ Processing data sources...\n` +
+      `📊 Building visualizations...\n` +
+      `🎨 Applying styles...`);
+  }, 6000);
+  
+  // Final: View ready with link
+  setTimeout(() => {
+    const viewLink = `bi-dashboard.html?template=${template.type}&id=${Date.now()}`;
+    addMessage('assistant', 
+      `🎉 **Your ${template.name} is ready!**\n\n` +
+      `✨ Successfully created with:\n` +
+      `• ${template.type === 'analytics' ? 'Revenue, Users, Conversion metrics' : 'Custom metrics based on your requirements'}\n` +
+      `• Interactive visualizations\n` +
+      `• Auto-refresh enabled\n\n` +
+      `<a href="${viewLink}" target="_blank" class="view-link-card" onclick="return openViewInNewTab(this.href)">\n` +
+      `  <div class="view-link-icon">${template.icon}</div>\n` +
+      `  <div class="view-link-title">${template.name}</div>\n` +
+      `  <div class="view-link-desc">Click to open in new tab</div>\n` +
+      `</a>\n\n` +
+      `You can now customize it further or share with your team!`,
+      true  // Allow HTML
+    );
+  }, 7500);
+}
+
+// Open view in new tab
+window.openViewInNewTab = function(url) {
+  window.open(url, '_blank');
+  return false;
+};
+
+// Legacy function for compatibility
+window.createView = function(viewType) {
+  selectTemplate(viewType);
 };
 
 window.deleteCard = function(cardId) {
@@ -1074,18 +1235,21 @@ window.executeSuggestion = function(command, action) {
   }, 800);
 };
 
-function addMessage(role, content) {
+function addMessage(role, content, allowHTML = false) {
   const container = document.getElementById('chatMessages');
   const msg = document.createElement('div');
   msg.className = `message ${role}`;
   const time = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+  
+  // Format content - either allow HTML or escape and replace newlines
+  const formattedContent = allowHTML ? content : content.replace(/\n/g, '<br>');
   
   msg.innerHTML = `
     <div class="message-header">
       <span>${role === 'user' ? '👤 Sarah' : '🤖 AI'}</span>
       <span>${time}</span>
     </div>
-    <div class="message-content">${content.replace(/\n/g, '<br>')}</div>
+    <div class="message-content">${formattedContent}</div>
   `;
   
   container.appendChild(msg);

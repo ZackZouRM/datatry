@@ -152,29 +152,90 @@
                 <button class="modal-close-btn" onclick="closeViewModal()">×</button>
             </div>
             <div class="view-modal-body">
-                <div class="view-templates-grid">
-                    <div class="view-template-card" onclick="createView('analytics')">
+                <div class="view-templates-grid" id="viewTemplatesGrid">
+                    <!-- Free Form Template -->
+                    <div class="view-template-card" onclick="selectTemplate('freeform')">
+                        <div class="template-icon">✨</div>
+                        <div class="template-title">Free Form</div>
+                        <div class="template-desc">Create a custom view from scratch</div>
+                    </div>
+                    
+                    <div class="view-template-card" onclick="selectTemplate('analytics')">
                         <div class="template-icon">📊</div>
                         <div class="template-title">Analytics Dashboard</div>
                         <div class="template-desc">Standard metrics and KPI tracking</div>
                     </div>
                     
-                    <div class="view-template-card" onclick="createView('monitor')">
+                    <div class="view-template-card" onclick="selectTemplate('monitor')">
                         <div class="template-icon">📈</div>
                         <div class="template-title">Monitor Dashboard</div>
                         <div class="template-desc">Real-time data monitoring</div>
                     </div>
                     
-                    <div class="view-template-card" onclick="createView('report')">
+                    <div class="view-template-card" onclick="selectTemplate('report')">
                         <div class="template-icon">📝</div>
                         <div class="template-title">Report Builder</div>
                         <div class="template-desc">Generate custom reports</div>
                     </div>
                     
-                    <div class="view-template-card" onclick="createView('goals')">
+                    <div class="view-template-card" onclick="selectTemplate('goals')">
                         <div class="template-icon">🎯</div>
                         <div class="template-title">Goal Tracking</div>
                         <div class="template-desc">Monitor KPI progress</div>
+                    </div>
+
+                    <div class="view-template-card" onclick="selectTemplate('sales')">
+                        <div class="template-icon">💰</div>
+                        <div class="template-title">Sales Pipeline</div>
+                        <div class="template-desc">Track sales funnel and deals</div>
+                    </div>
+
+                    <div class="view-template-card" onclick="selectTemplate('users')">
+                        <div class="template-icon">👥</div>
+                        <div class="template-title">User Analytics</div>
+                        <div class="template-desc">User behavior and engagement</div>
+                    </div>
+
+                    <div class="view-template-card" onclick="selectTemplate('financial')">
+                        <div class="template-icon">💵</div>
+                        <div class="template-title">Financial Overview</div>
+                        <div class="template-desc">Revenue and expense tracking</div>
+                    </div>
+
+                    <div class="view-template-card" onclick="selectTemplate('marketing')">
+                        <div class="template-icon">📢</div>
+                        <div class="template-title">Marketing Performance</div>
+                        <div class="template-desc">Campaign metrics and ROI</div>
+                    </div>
+
+                    <div class="view-template-card" onclick="selectTemplate('product')">
+                        <div class="template-icon">🚀</div>
+                        <div class="template-title">Product Metrics</div>
+                        <div class="template-desc">Feature usage and adoption</div>
+                    </div>
+                </div>
+
+                <!-- Requirements Input Section -->
+                <div class="view-requirements-section" id="viewRequirementsSection" style="display: none;">
+                    <div class="requirements-header">
+                        <h4 id="selectedTemplateName">Free Form View</h4>
+                        <p id="selectedTemplateDesc">Describe your custom view requirements</p>
+                    </div>
+                    <div class="requirements-input-wrapper">
+                        <textarea 
+                            id="viewRequirements" 
+                            class="requirements-textarea" 
+                            placeholder="Please describe your requirements in detail. For example:
+- What data do you want to display?
+- How should it be visualized?
+- Any specific metrics or KPIs?
+- What time range should be shown?"
+                            rows="6"
+                        ></textarea>
+                        <div class="requirements-actions">
+                            <button class="btn-secondary" onclick="backToTemplates()">Back</button>
+                            <button class="btn-primary" onclick="submitViewRequest()">Submit Request</button>
+                        </div>
                     </div>
                 </div>
             </div>

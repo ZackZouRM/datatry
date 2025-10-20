@@ -1960,6 +1960,8 @@ body {
 
 .view-modal-body {
   padding: 24px;
+  max-height: 500px;
+  overflow-y: auto;
 }
 
 .view-templates-grid {
@@ -2001,5 +2003,130 @@ body {
   font-size: 12px;
   color: var(--text-gray);
   line-height: 1.5;
+}
+
+/* Requirements Input Section */
+.view-requirements-section {
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border-light);
+  animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.requirements-header h4 {
+  font-size: 18px;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+.requirements-header p {
+  font-size: 13px;
+  color: var(--text-gray);
+  margin-bottom: 16px;
+}
+
+.requirements-input-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.requirements-textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: inherit;
+  resize: vertical;
+  min-height: 120px;
+  transition: border-color 0.2s;
+}
+
+.requirements-textarea:focus {
+  outline: none;
+  border-color: var(--primary-blue);
+  box-shadow: 0 0 0 3px rgba(122, 184, 204, 0.1);
+}
+
+.requirements-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.btn-primary, .btn-secondary {
+  padding: 10px 24px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+}
+
+.btn-primary {
+  background: var(--primary-blue);
+  color: white;
+}
+
+.btn-primary:hover {
+  background: var(--primary-blue-dark);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(122, 184, 204, 0.3);
+}
+
+.btn-secondary {
+  background: var(--bg-hover);
+  color: var(--text-medium);
+}
+
+.btn-secondary:hover {
+  background: var(--border-medium);
+}
+
+/* View Link in Chat */
+.view-link-card {
+  display: inline-block;
+  padding: 16px;
+  background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-blue-dark) 100%);
+  border-radius: 12px;
+  color: white;
+  text-decoration: none;
+  margin: 8px 0;
+  transition: all 0.3s;
+  box-shadow: 0 4px 12px rgba(122, 184, 204, 0.2);
+}
+
+.view-link-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(122, 184, 204, 0.3);
+}
+
+.view-link-icon {
+  font-size: 24px;
+  margin-bottom: 8px;
+}
+
+.view-link-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.view-link-desc {
+  font-size: 13px;
+  opacity: 0.9;
 }
 
