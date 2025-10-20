@@ -975,9 +975,11 @@ function startViewCreationConversation(template, requirements) {
       `• Interactive visualizations\n` +
       `• Auto-refresh enabled\n\n` +
       `<a href="${viewLink}" target="_blank" class="view-link-card" onclick="return openViewInNewTab(this.href)">\n` +
-      `  <div class="view-link-icon">${template.icon}</div>\n` +
-      `  <div class="view-link-title">${template.name}</div>\n` +
-      `  <div class="view-link-desc">Click to open in new tab</div>\n` +
+      `  <span class="view-link-icon">${template.icon}</span>\n` +
+      `  <div class="view-link-content">\n` +
+      `    <div class="view-link-title">${template.name}</div>\n` +
+      `    <div class="view-link-desc">Click to open in new tab</div>\n` +
+      `  </div>\n` +
       `</a>\n\n` +
       `You can now customize it further or share with your team!`,
       true  // Allow HTML
