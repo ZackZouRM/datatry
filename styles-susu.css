@@ -4,9 +4,10 @@
    ============================================ */
 
 :root {
-  /* 极简配色（参考知识管理工具） */
+  /* 极简配色（参考知识管理工具） - 色温对比方案 */
   --bg-main: #F7F8F9;
-  --bg-canvas: #FAFBFC;
+  --bg-canvas: #F8F9FB;  /* 偏蓝的浅灰（冷色调） */
+  --bg-chat: #F5F6F7;    /* 偏暖的灰（暖色调） */
   --bg-card: #FFFFFF;
   --bg-hover: #F8F9FA;
   
@@ -257,7 +258,7 @@ body {
   height: 100%;
 }
 
-/* 数据总览面板 - 左侧画布区域顶部居中 */
+/* 数据总览面板 - 左侧画布区域顶部居中 - 无边框 */
 .data-overview-panel {
   position: fixed;
   left: calc((100vw - 400px) / 2);  /* 左侧画布区域的精确中心 */
@@ -265,14 +266,14 @@ body {
   transform: translateX(-50%);  /* 面板中心对齐到计算位置 */
   background: rgba(255, 255, 255, 0.98);
   backdrop-filter: blur(10px);
-  border: 1px solid var(--border-light);
+  border: none;  /* 移除边框 */
   border-radius: 12px;
   padding: 12px 16px;
   display: flex;
   align-items: center;
   gap: 20px;
   z-index: 550;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);  /* 增强阴影 */
 }
 
 .overview-stats {
@@ -352,7 +353,7 @@ body {
   flex-shrink: 0;
 }
 
-/* 复位布局按钮（画布容器右下角） */
+/* 复位布局按钮（画布容器右下角） - 无边框 */
 .reset-layout-btn {
   position: absolute;  /* 相对于.card-network-canvas定位 */
   right: 20px;
@@ -361,7 +362,7 @@ body {
   height: 44px;
   background: rgba(255, 255, 255, 0.98);
   backdrop-filter: blur(10px);
-  border: 1px solid var(--border-light);
+  border: none;  /* 移除边框 */
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -369,16 +370,15 @@ body {
   cursor: pointer;
   z-index: 550;
   transition: all 0.2s ease;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.12);  /* 增强阴影 */
   color: var(--text-medium);
 }
 
 .reset-layout-btn:hover {
   background: white;
-  border-color: var(--primary-blue);
   color: var(--primary-blue);
   transform: translateY(-2px) rotate(180deg);
-  box-shadow: 0 4px 12px rgba(122, 184, 204, 0.2);
+  box-shadow: 0 6px 16px rgba(122, 184, 204, 0.25);  /* 悬停时蓝色阴影 */
 }
 
 /* Canvas工具栏（左下角） */
@@ -429,23 +429,38 @@ body {
   height: 100%;
 }
 
-/* Data Card (在SVG foreignObject中) */
+/* Data Card (在SVG foreignObject中) - 无边框设计 */
 .data-card {
   width: 100%;
   height: 100%;
   background: #FFFFFF;
-  border: 1px solid var(--border-light);
+  border: none;  /* 移除边框 */
   border-radius: 10px;
-  padding: 16px;  /* 恢复原始内边距 */
-  transition: all 0.15s ease-out;
+  padding: 16px;
+  transition: all 0.2s ease-out;
   cursor: pointer;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);  /* 增强阴影替代边框 */
   box-sizing: border-box;
 }
 
 .data-card:hover {
-  border-color: var(--border-medium);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+/* Core卡片强化 - 双层阴影+背景微染色 */
+.data-card.core {
+  background: linear-gradient(135deg, #FFFFFF 0%, #F0F8FA 100%);  /* 微蓝渐变 */
+  border: none;
+  box-shadow: 0 0 0 1px rgba(122, 184, 204, 0.4),  /* 内描边 */
+              0 8px 24px rgba(122, 184, 204, 0.25);  /* 外阴影 */
+  transform: scale(1.02);  /* 微微放大 */
+}
+
+.data-card.core:hover {
+  box-shadow: 0 0 0 2px rgba(122, 184, 204, 0.6),
+              0 12px 32px rgba(122, 184, 204, 0.35);
+  transform: scale(1.02) translateY(-2px);
 }
 
 .data-card:hover .card-actions {
@@ -767,7 +782,7 @@ body {
 /* Right Panel - Info/Chat */
 .info-panel {
   width: 400px;
-  background: #F7F8F9;  /* 稍深的灰色，与画布区分 */
+  background: var(--bg-chat);  /* 偏暖的灰，与画布区分 */
   border-left: none;  /* 移除分割线，用色块区分 */
   display: flex;
   flex-direction: column;
@@ -810,14 +825,16 @@ body {
 
 .message.assistant {
   align-self: flex-start;
-  background: var(--bg-light);
-  border: 1px solid var(--border-light);
+  background: #FFFFFF;  /* 白色，在聊天区的暖灰背景上突出 */
+  border: none;  /* 移除边框 */
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);  /* 轻微阴影 */
 }
 
 .message.user {
   align-self: flex-end;
-  background: rgba(122, 184, 204, 0.06);
-  border: 1px solid var(--border-light);
+  background: rgba(122, 184, 204, 0.08);  /* 稍深一点的蓝色背景 */
+  border: none;  /* 移除边框 */
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
 }
 
 .message-header {
@@ -838,7 +855,7 @@ body {
 /* Input Area */
 .chat-input-container {
   padding: 16px 20px;
-  background: #FAFBFC;  /* 与画布颜色呼应 */
+  background: var(--bg-canvas);  /* 与画布颜色呼应（偏蓝冷色） */
   border-top: none;  /* 移除分割线 */
 }
 
@@ -847,17 +864,19 @@ body {
   display: flex;
   flex-wrap: wrap;
   align-items: flex-end;
-  background: var(--bg-light);
-  border: 1px solid var(--border-light);
+  background: #FFFFFF;  /* 白色背景，在偏蓝背景上突出 */
+  border: none;  /* 移除边框 */
   border-radius: 8px;
   padding: 10px 12px;
   gap: 6px;
   transition: all 0.15s ease-out;
   min-height: 80px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);  /* 阴影替代边框 */
 }
 
 .chat-input-wrapper:focus-within {
-  border-color: var(--primary-blue-dark);
+  box-shadow: 0 0 0 2px rgba(122, 184, 204, 0.3),  /* 聚焦时的蓝色描边 */
+              0 4px 12px rgba(0, 0, 0, 0.08);
   background: var(--bg-card);
 }
 
@@ -965,16 +984,17 @@ body {
   padding: 14px 16px;
   margin: 10px 0;
   background: var(--bg-card);
-  border: 1px solid var(--border-light);
+  border: none;  /* 移除边框 */
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.15s ease-out;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);  /* 阴影替代 */
 }
 
 .suggestion-card:hover {
   background: var(--bg-hover);
-  border-color: var(--border-medium);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+  transform: translateY(-1px);
 }
 
 .suggestion-header {
@@ -1022,19 +1042,21 @@ body {
   align-items: center;
   gap: 6px;
   padding: 6px 12px;
-  background: var(--bg-light);
-  border: 1px solid var(--border-light);
+  background: #FFFFFF;  /* 白色按钮，在偏蓝背景上突出 */
+  border: none;  /* 移除边框 */
   border-radius: 6px;
   font-size: 12px;
   color: var(--text-dark);
   font-weight: 500;
   cursor: pointer;
   transition: all 0.15s ease-out;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
 }
 
 .quick-action-btn:hover {
   background: var(--bg-hover);
-  border-color: var(--border-medium);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transform: translateY(-1px);
 }
 
 .quick-action-btn span:first-child {
@@ -1390,8 +1412,8 @@ body {
 
 .connection-line {
   stroke: var(--line-color);
-  stroke-width: 1.5;
-  stroke-opacity: 0.25;
+  stroke-width: 2;  /* 加粗 */
+  stroke-opacity: 0.4;  /* 提高不透明度 */
   fill: none;
   stroke-linecap: round;
   transition: all 0.15s ease-out;
@@ -1399,8 +1421,8 @@ body {
 
 .connection-line.active {
   stroke: var(--line-active);
-  stroke-opacity: 0.5;
-  stroke-width: 2;
+  stroke-opacity: 0.7;  /* 提高活动状态的不透明度 */
+  stroke-width: 2.5;
 }
 
 /* ============================================
@@ -2135,27 +2157,29 @@ body {
   background: var(--border-medium);
 }
 
-/* View Link in Chat - 小巧样式 */
+/* View Link in Chat - 小巧样式，无边框 */
 .view-link-card {
   display: inline-flex;
   align-items: center;
   gap: 10px;
   padding: 12px 16px;
   background: var(--bg-card);
-  border: 1px solid var(--primary-blue);
+  border: none;  /* 移除边框 */
   border-radius: 8px;
   color: var(--text-primary);
   text-decoration: none;
   margin: 8px 0;
   transition: all 0.15s ease-out;
   cursor: pointer;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06),  /* 基础阴影 */
+              0 0 0 1px rgba(122, 184, 204, 0.2);  /* 淡蓝描边 */
 }
 
 .view-link-card:hover {
   background: var(--bg-hover);
-  border-color: var(--primary-blue-dark);
   transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(122, 184, 204, 0.15);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08),
+              0 0 0 1px rgba(122, 184, 204, 0.4);
 }
 
 .view-link-icon {
