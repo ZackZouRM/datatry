@@ -147,25 +147,32 @@ body {
 }
 
 .btn-icon {
-  min-width: 36px;
+  position: relative;
+  width: 36px;
   height: 36px;
-  padding: 0 8px;
+  padding: 0;
   background: transparent;
   border: 1px solid transparent;
   border-radius: 6px;
   color: var(--text-gray);
-  font-size: 14px;
   cursor: pointer;
   transition: all 0.15s ease-out;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  white-space: nowrap;
 }
 
 .btn-icon:hover {
   background: var(--bg-hover);
   color: var(--text-dark);
+}
+
+.btn-icon.profile-menu-btn {
+  width: auto;
+  min-width: 70px;
+  padding: 0 12px;
+  font-size: 13px;
+  font-weight: 500;
 }
 
 .message-count {
@@ -236,6 +243,7 @@ body {
 .main-layout {
   display: grid;
   grid-template-columns: 1fr 400px;
+  margin-top: 60px;  /* 避开固定的header */
   height: calc(100vh - 60px);
   background: var(--bg-light);
 }
@@ -243,18 +251,18 @@ body {
 /* Left: Card Network Canvas */
 .card-network-canvas {
   position: relative;
-  overflow: auto;  /* 改为auto，允许滚动 */
+  overflow: hidden;  /* 改回hidden，通过SVG内部处理滚动 */
   background: var(--bg-canvas);
   width: 100%;
   height: 100%;
 }
 
-/* 数据总览面板 */
+/* 数据总览面板 - 左侧画布区域顶部居中 */
 .data-overview-panel {
-  position: fixed;  /* 改为fixed，相对于视窗定位 */
-  top: 80px;  /* 在header下方 */
-  left: 25%;  /* 在左侧画布区域的中心 */
-  transform: translateX(-50%);
+  position: fixed;
+  left: calc((100vw - 400px) / 2);  /* 左侧画布区域的精确中心 */
+  top: 80px;
+  transform: translateX(-50%);  /* 面板中心对齐到计算位置 */
   background: rgba(255, 255, 255, 0.98);
   backdrop-filter: blur(10px);
   border: 1px solid var(--border-light);
@@ -263,7 +271,7 @@ body {
   display: flex;
   align-items: center;
   gap: 20px;
-  z-index: 550; /* 高于画布工具栏，确保不被遮挡 */
+  z-index: 550;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
 }
 
@@ -342,6 +350,35 @@ body {
 
 .btn-upload-data svg {
   flex-shrink: 0;
+}
+
+/* 复位布局按钮（画布容器右下角） */
+.reset-layout-btn {
+  position: absolute;  /* 相对于.card-network-canvas定位 */
+  right: 20px;
+  bottom: 20px;
+  width: 44px;
+  height: 44px;
+  background: rgba(255, 255, 255, 0.98);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--border-light);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 550;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  color: var(--text-medium);
+}
+
+.reset-layout-btn:hover {
+  background: white;
+  border-color: var(--primary-blue);
+  color: var(--primary-blue);
+  transform: translateY(-2px) rotate(180deg);
+  box-shadow: 0 4px 12px rgba(122, 184, 204, 0.2);
 }
 
 /* Canvas工具栏（左下角） */
@@ -730,8 +767,8 @@ body {
 /* Right Panel - Info/Chat */
 .info-panel {
   width: 400px;
-  background: var(--bg-white);
-  border-left: 1px solid var(--border-light);
+  background: #F7F8F9;  /* 稍深的灰色，与画布区分 */
+  border-left: none;  /* 移除分割线，用色块区分 */
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -739,7 +776,8 @@ body {
 
 .chat-header {
   padding: 16px 20px;
-  border-bottom: 1px solid var(--border-light);
+  background: #FFFFFF;  /* 白色背景 */
+  border-bottom: none;  /* 移除分割线 */
 }
 
 .chat-header h3 {
@@ -799,8 +837,9 @@ body {
 
 /* Input Area */
 .chat-input-container {
-  padding: 16px 20px 20px 20px;
-  border-top: 1px solid var(--border-light);
+  padding: 16px 20px;
+  background: #FAFBFC;  /* 与画布颜色呼应 */
+  border-top: none;  /* 移除分割线 */
 }
 
 .chat-input-wrapper {
