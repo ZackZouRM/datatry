@@ -438,7 +438,7 @@ function renderCards() {
     const htmlContent = `
       <div class="data-card ${colorClass} ${card.isCore ? 'core' : ''}" 
            xmlns="http://www.w3.org/1999/xhtml"
-           style="background: #FFFFFF !important;"
+           style="${card.isCore ? 'background: #5A95A8 !important;' : 'background: #FFFFFF !important;'}"
            onclick="selectCard('${card.id}')">
         <div class="card-actions">
           <button class="card-action-btn edit-btn" onclick="event.stopPropagation(); editCard('${card.id}')">✎</button>

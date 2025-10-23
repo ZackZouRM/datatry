@@ -13,10 +13,19 @@ A modern, interactive knowledge management system with a card-based layout for d
 
 ## 🚀 Quick Start
 
-### Option 1: Direct Opening
-Simply open `index-susu.html` in your browser.
+### For First-Time Users
+Open `onboarding/step1-welcome.html` in your browser to begin the guided onboarding flow:
+1. Name your project
+2. Upload data or connect database
+3. Data cleaning (automatic)
+4. Business understanding Q&A
+5. Data saturation assessment
+6. Enter main dashboard
 
-### Option 2: Local Server
+### For Returning Users
+Simply open `index.html` to access the main dashboard directly.
+
+### Local Server (Recommended)
 ```bash
 # Using Python 3
 python -m http.server 8000
@@ -24,18 +33,36 @@ python -m http.server 8000
 # Using Node.js
 npx http-server
 
-# Then visit http://localhost:8000/index-susu.html
+# Then visit:
+# - New users: http://localhost:8000/onboarding/step1-welcome.html
+# - Existing users: http://localhost:8000/index.html
 ```
+
+### GitHub Pages
+Visit the live demo: [Your GitHub Pages URL]
 
 ## 📁 Project Structure
 
 ```
-├── index-susu.html      # Main application file
-├── styles-susu.css      # Styles and theme
-├── script-susu.js       # Application logic
+├── onboarding/          # Onboarding flow (first-time users)
+│   ├── step1-welcome.html      # Name project
+│   ├── step2-upload.html       # Upload data
+│   ├── step3-cleaning.html     # Data cleaning
+│   ├── step4-qa.html           # Business Q&A
+│   ├── step5-saturation.html   # Saturation check
+│   ├── onboarding.css          # Onboarding styles
+│   └── onboarding.js           # Onboarding logic
+├── index.html           # Main application file
+├── styles.css           # Styles and theme
+├── script.js            # Application logic
+├── bi-dashboard.html    # BI Dashboard view
+├── star/                # Star Version backup (retro sci-fi style)
+│   ├── index.html
+│   ├── styles.css
+│   └── script.js
 ├── pic/                 # Image assets
 │   └── *.webp          # Media card images
-└── README.md           # This file
+└── README.md            # This file
 ```
 
 ## 🎨 Technologies
@@ -57,7 +84,7 @@ npx http-server
 ## 🔧 Customization
 
 ### Modify Card Data
-Edit the `cards` array in `script-susu.js`:
+Edit the `cards` array in `script.js`:
 ```javascript
 const cards = [
   { id: 'unique-id', title: 'Card Title', type: 'Data', ... }
@@ -65,13 +92,13 @@ const cards = [
 ```
 
 ### Adjust Layout
-Modify layout constants in `script-susu.js`:
+Modify layout constants in `script.js`:
 ```javascript
 const LAYOUT = {
-  CARD_W: 120,  // Card width
-  CARD_H: 90,   // Card height
-  GAP_X: 160,   // Horizontal gap
-  GAP_Y: 120    // Vertical gap
+  CARD_W: 240,  // Card width
+  CARD_H: 180,  // Card height
+  GAP_X: 300,   // Horizontal gap
+  GAP_Y: 220    // Vertical gap
 };
 ```
 

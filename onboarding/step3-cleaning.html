@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Cleaning - Knowledge Universe</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="onboarding.css">
+</head>
+<body>
+    <!-- Progress Bar -->
+    <div class="progress-container">
+        <div class="progress-bar" id="progressBar" style="width: 60%;"></div>
+    </div>
+    
+    <!-- Step Indicator -->
+    <div class="step-indicator">Step 3 of 5</div>
+    
+    <!-- Main Content -->
+    <div class="onboarding-container">
+        <h2>Cleaning Your Data</h2>
+        <p class="subtitle">Analyzing and preparing your data for insights</p>
+        
+        <!-- Progress Circle -->
+        <div class="progress-circle-container">
+            <div class="progress-circle">
+                <svg width="240" height="240">
+                    <circle 
+                        class="progress-circle-bg"
+                        cx="120" 
+                        cy="120" 
+                        r="100"
+                    ></circle>
+                    <circle 
+                        class="progress-circle-fill"
+                        id="progressCircle"
+                        cx="120" 
+                        cy="120" 
+                        r="100"
+                        stroke-dasharray="628.32"
+                        stroke-dashoffset="628.32"
+                    ></circle>
+                </svg>
+                <div class="progress-percentage" id="progressPercentage">0%</div>
+            </div>
+        </div>
+        
+        <!-- Task List -->
+        <div class="task-list" id="taskList">
+            <div class="task-item" data-task="schema">
+                <div class="task-icon">○</div>
+                <div class="task-text">Schema analysis</div>
+            </div>
+            <div class="task-item" data-task="missing">
+                <div class="task-icon">○</div>
+                <div class="task-text">Missing values detection</div>
+            </div>
+            <div class="task-item" data-task="outlier">
+                <div class="task-icon">○</div>
+                <div class="task-text">Outlier detection</div>
+            </div>
+            <div class="task-item" data-task="type">
+                <div class="task-icon">○</div>
+                <div class="task-text">Type inference</div>
+            </div>
+            <div class="task-item" data-task="duplicate">
+                <div class="task-icon">○</div>
+                <div class="task-text">Duplicate check</div>
+            </div>
+            <div class="task-item" data-task="standard">
+                <div class="task-icon">○</div>
+                <div class="task-text">Standardization</div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="onboarding.js"></script>
+    <script>
+        const progressCircle = document.getElementById('progressCircle');
+        const progressPercentage = document.getElementById('progressPercentage');
+        const taskItems = document.querySelectorAll('.task-item');
+        
+        const circumference = 628.32; // 2 * PI * 100
+        let currentProgress = 0;
+        
+        // Update progress circle
+        function updateProgress(percentage) {
+            currentProgress = percentage;
+            const offset = circumference - (percentage / 100) * circumference;
+            progressCircle.style.strokeDashoffset = offset;
+            progressPercentage.textContent = Math.round(percentage) + '%';
+        }
+        
+        // Complete a task
+        function completeTask(taskElement) {
+            taskElement.classList.add('completed');
+            taskElement.querySelector('.task-icon').textContent = '✓';
+        }
+        
+        // Run cleaning simulation
+        async function runCleaning() {
+            const tasks = Array.from(taskItems);
+            const totalTasks = tasks.length;
+            
+            for (let i = 0; i < totalTasks; i++) {
+                // Wait before starting each task
+                await delay(800);
+                
+                // Update progress
+                const progress = ((i + 1) / totalTasks) * 100;
+                updateProgress(progress);
+                
+                // Mark task as complete
+                completeTask(tasks[i]);
+                
+                // Extra delay after completing
+                await delay(400);
+            }
+            
+            // All tasks complete
+            await delay(800);
+            
+            // Save completion status
+            saveData({ cleaning_complete: true });
+            
+            // Navigate to next step
+            goToStep(4);
+        }
+        
+        // Start cleaning on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            // Demo mode: Always run animation
+            setTimeout(() => {
+                runCleaning();
+            }, 1000);
+        });
+    </script>
+</body>
+</html>
+

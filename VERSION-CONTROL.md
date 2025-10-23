@@ -2,7 +2,7 @@
 
 ## 🎨 版本系统说明
 
-本项目支持多种视觉风格版本，用户可以根据喜好选择不同的交互体验。
+本项目当前使用 **Susu Version（清新商务版）** 作为主版本。Star Version（星球版）已备份至 `/star` 文件夹。
 
 ---
 
@@ -10,19 +10,52 @@
 
 ```
 data try/
-├── index-selector.html    # 版本选择器（入口页面）
-├── index.html            # Star Version（星球版）
-├── index-cell.html       # Cell Version（细胞版 - 待创建）
-├── styles.css            # Star Version 样式
-├── styles-cell.css       # Cell Version 样式（待创建）
-├── script.js             # Star Version 逻辑
-├── script-cell.js        # Cell Version 逻辑（待创建）
-└── VERSION-CONTROL.md    # 本说明文件
+├── index.html            # Main Version (Susu - 清新商务版)
+├── styles.css            # Main styles
+├── script.js             # Main logic
+├── bi-dashboard.html     # BI Dashboard view
+├── star/                 # Star Version backup (星球版备份)
+│   ├── index.html        # Star Version entry
+│   ├── styles.css        # Star Version styles
+│   ├── script.js         # Star Version logic
+│   └── index-selector.html  # Version selector
+├── index-susu.html       # Susu Version backup
+├── styles-susu.css       # Susu styles backup
+├── script-susu.js        # Susu logic backup
+└── VERSION-CONTROL.md    # This file
 ```
 
 ---
 
-## 🌟 Star Version（星球版）
+## 🎯 Susu Version（清新商务版）- **当前主版本**
+
+**设计理念：** 现代商务风格，简洁、实用、清新
+
+**视觉特点：**
+- 🎨 白色+灰色+低饱和蓝绿色主题
+- 📊 卡片式数据可视化
+- 🔗 平滑贝塞尔曲线连接
+- 💫 无边框设计，色块分区
+- 📈 数据总览面板
+
+**交互方式：**
+- 卡片拖拽与缩放
+- 点击展开详情（模态框）
+- AI助手对话
+- 创建自定义视图
+- 自动布局重置
+
+**文件：**
+- `index.html` (主文件)
+- `styles.css`
+- `script.js`
+- `bi-dashboard.html` (BI视图)
+
+**状态：** ✅ 当前使用中
+
+---
+
+## 🌟 Star Version（星球版）- **已备份至 /star**
 
 **设计理念：** 70年代星球大战复古科幻风格
 
@@ -40,101 +73,49 @@ data try/
 - 能量注入动画
 
 **文件：**
-- `index.html`
-- `styles.css`
-- `script.js`
+- `star/index.html`
+- `star/styles.css`
+- `star/script.js`
+- `star/index-selector.html`
 
-**状态：** ✅ 已完成
-
----
-
-## 🧬 Cell Version（细胞版）
-
-**设计理念：** 生物细胞有机生长风格
-
-**视觉特点（规划中）：**
-- 🧬 细胞分裂开场
-- 🫧 气泡/细胞可视化
-- 🌊 有机流动动画
-- 🔬 显微镜美学
-- 💧 膜连接效果
-
-**交互方式（规划中）：**
-- 细胞合并/分裂
-- 有机生长动画
-- 膜泡连接
-- 细胞自动机模式
-
-**文件（待创建）：**
-- `index-cell.html`
-- `styles-cell.css`
-- `script-cell.js`
-
-**状态：** 🚧 待开发
+**状态：** ✅ 已备份（可独立运行）
 
 ---
 
 ## 🚀 如何使用
 
-### 方式1：从选择器进入
-1. 打开 `index-selector.html`
-2. 选择你想要的版本
-3. 点击进入
+### 主版本（Susu）
+直接打开 `index.html` 即可使用。
 
-### 方式2：直接打开
-- Star Version: 打开 `index.html`
-- Cell Version: 打开 `index-cell.html`（待创建）
-
----
-
-## 🎯 版本切换
-
-### 在运行时切换
-在任意版本的右上角都有版本切换按钮，可以随时切换到其他版本。
-
-### 添加新版本
-1. 复制现有版本的HTML/CSS/JS
-2. 修改视觉风格和交互逻辑
-3. 在 `index-selector.html` 中添加新卡片
-4. 更新本文档
+### Star 版本（备份）
+如需使用Star版本，打开 `star/index.html`。
 
 ---
 
 ## 📊 版本对比
 
-| 特性 | Star Version | Cell Version |
+| 特性 | Susu Version | Star Version |
 |------|--------------|--------------|
-| 风格 | 太空科幻 | 生物有机 |
-| 开场 | 宇宙飞行 | 细胞分裂 |
-| 节点 | 星球 | 细胞 |
-| 连接 | 能量线 | 细胞膜 |
-| 动画 | 机械硬朗 | 流动柔和 |
-| 配色 | 青蓝为主 | 绿粉为主 |
-| 字体 | Orbitron | 待定 |
-| 状态 | ✅ 完成 | 🚧 待开发 |
+| 风格 | 现代商务 | 复古科幻 |
+| 开场 | 无 | 宇宙飞行 |
+| 节点 | 卡片 | 星球 |
+| 连接 | 贝塞尔曲线 | 能量线 |
+| 配色 | 白灰蓝绿 | 深色太空 |
+| 字体 | Inter | Orbitron |
+| AI助手 | ✅ 完整 | ✅ 完整 |
+| 创建视图 | ✅ 模板库 | ✅ 基础版 |
+| 状态 | ✅ 主版本 | ✅ 已备份 |
 
 ---
 
 ## 💡 设计原则
 
-每个版本应该：
-1. 保持核心功能一致（数据导入、清洗、QA、分析）
-2. 提供独特的视觉体验
-3. 匹配特定的用户场景或心理模型
-4. 可独立运行，互不依赖
+- Susu版本注重**实用性和清晰度**，适合商务数据分析
+- Star版本注重**视觉冲击力**，适合演示和创意展示
+- 两个版本可独立运行，互不依赖
 
 ---
 
-## 🎨 未来版本规划
-
-- **Star Version** 🌟 - 复古太空（已完成）
-- **Cell Version** 🧬 - 生物细胞（待开发）
-- **Network Version** 🕸️ - 神经网络风格（规划中）
-- **Flow Version** 💧 - 流体动力学风格（规划中）
-- **Crystal Version** 💎 - 水晶矿物风格（规划中）
-
----
-
-**当前激活版本：** Star Version 🌟  
-**最后更新：** 2024-10-16
+**当前激活版本：** Susu Version 🎯  
+**最后更新：** 2025-10-23
 

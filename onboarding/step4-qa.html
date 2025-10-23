@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Business Understanding - Knowledge Universe</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="onboarding.css">
+</head>
+<body>
+    <!-- Progress Bar -->
+    <div class="progress-container">
+        <div class="progress-bar" id="progressBar" style="width: 80%;"></div>
+    </div>
+    
+    <!-- Step Indicator -->
+    <div class="step-indicator">Step 4 of 5</div>
+    
+    <!-- Main Content -->
+    <div class="onboarding-container" style="padding-bottom: 140px;">
+        <h2>Business Understanding</h2>
+        <p class="subtitle">Help me understand your goals and data context</p>
+        
+        <!-- Chat Container -->
+        <div class="chat-container" id="chatContainer"></div>
+    </div>
+    
+    <!-- Action Buttons - Fixed at bottom -->
+    <div class="action-buttons-container">
+        <div class="action-buttons" id="actionButtons"></div>
+    </div>
+    
+    <script src="onboarding.js"></script>
+    <script>
+        const chatContainer = document.getElementById('chatContainer');
+        const actionButtons = document.getElementById('actionButtons');
+        
+        let currentPhase = 1;
+        
+        // Add AI message
+        function addAIMessage(content) {
+            const message = document.createElement('div');
+            message.className = 'message ai fade-in';
+            message.innerHTML = `
+                <div class="message-avatar">🤖</div>
+                <div class="message-content">${content}</div>
+            `;
+            chatContainer.appendChild(message);
+            scrollToBottom();
+        }
+        
+        // Add user message
+        function addUserMessage(content) {
+            const message = document.createElement('div');
+            message.className = 'message user fade-in';
+            message.innerHTML = `
+                <div class="message-content">${content}</div>
+                <div class="message-avatar">👤</div>
+            `;
+            chatContainer.appendChild(message);
+            scrollToBottom();
+        }
+        
+        // Show action buttons
+        function showButtons(buttons) {
+            actionButtons.innerHTML = '';
+            buttons.forEach(btn => {
+                const button = document.createElement('button');
+                button.className = `btn ${btn.primary ? 'btn-primary' : 'btn-secondary'}`;
+                button.textContent = btn.label;
+                button.onclick = btn.action;
+                actionButtons.appendChild(button);
+            });
+        }
+        
+        // Clear action buttons
+        function clearButtons() {
+            actionButtons.innerHTML = '';
+        }
+        
+        // Scroll to bottom
+        function scrollToBottom() {
+            setTimeout(() => {
+                window.scrollTo({
+                    top: document.body.scrollHeight,
+                    behavior: 'smooth'
+                });
+            }, 100);
+        }
+        
+        // Phase 1: Business Context
+        async function startPhase1() {
+            await delay(500);
+            
+            addAIMessage(
+                `📋 <strong>Phase 1/3: Business Context</strong>\n\n` +
+                `Based on your data, I believe:\n\n` +
+                `<strong>Who you are:</strong> [需确认]\n` +
+                `E-commerce retail company\n\n` +
+                `<strong>What you do:</strong> [需确认]\n` +
+                `Sell consumer products online (B2C)\n\n` +
+                `<strong>Why analyze:</strong> [需确认]\n` +
+                `Understand customer behavior to increase sales`
+            );
+            
+            await delay(800);
+            
+            showButtons([
+                {
+                    label: '✓ Correct, Continue',
+                    primary: true,
+                    action: confirmPhase1
+                },
+                {
+                    label: '✎ No, Let me clarify',
+                    primary: false,
+                    action: clarifyPhase1
+                },
+                {
+                    label: 'Skip All',
+                    primary: false,
+                    action: skipAll
+                }
+            ]);
+        }
+        
+        async function confirmPhase1() {
+            clearButtons();
+            addUserMessage("Yes, that's correct!");
+            
+            const data = getData();
+            data.business_context.phase1 = 'confirmed';
+            saveData(data);
+            
+            currentPhase = 2;
+            await delay(1000);
+            startPhase2();
+        }
+        
+        async function clarifyPhase1() {
+            clearButtons();
+            addUserMessage("Let me provide more context...");
+            
+            await delay(1000);
+            
+            addAIMessage(
+                `Thank you! Please tell me:\n\n` +
+                `1️⃣ <strong>Your Business:</strong>\n` +
+                `   What industry? What do you sell?\n\n` +
+                `2️⃣ <strong>Your Challenge:</strong>\n` +
+                `   What problem are you trying to solve?\n\n` +
+                `3️⃣ <strong>Your Goal:</strong>\n` +
+                `   What decision will this data help you make?`
+            );
+            
+            await delay(2000);
+            
+            // Simulate user clarification
+            addUserMessage(
+                "We're a subscription box service. Our churn is too high. " +
+                "I want to predict which customers will cancel next month."
+            );
+            
+            await delay(1500);
+            
+            addAIMessage(
+                `Got it! Re-analyzing your data for:\n\n` +
+                `✓ Business: Subscription box service\n` +
+                `✓ Challenge: High churn rate\n` +
+                `✓ Goal: Churn prediction model\n\n` +
+                `This context will help provide better insights.`
+            );
+            
+            const data = getData();
+            data.business_context.phase1 = 'clarified';
+            saveData(data);
+            
+            currentPhase = 2;
+            await delay(1500);
+            startPhase2();
+        }
+        
+        // Phase 2: Application Goals
+        async function startPhase2() {
+            addAIMessage(
+                `📋 <strong>Phase 2/3: Application Goals</strong>\n\n` +
+                `What questions do you want to answer:\n\n` +
+                `<strong>Primary goal:</strong> [需确认]\n` +
+                `User growth & retention analysis\n\n` +
+                `<strong>Key questions:</strong> [需确认]\n` +
+                `• Why do users leave?\n` +
+                `• Which channels retain best?\n` +
+                `• How to improve repeat purchase?\n\n` +
+                `<strong>Usage:</strong> [需确认]\n` +
+                `Weekly review + campaign optimization`
+            );
+            
+            await delay(800);
+            
+            showButtons([
+                {
+                    label: '✓ Correct, Continue',
+                    primary: true,
+                    action: confirmPhase2
+                },
+                {
+                    label: '✎ Adjust Goals',
+                    primary: false,
+                    action: adjustPhase2
+                }
+            ]);
+        }
+        
+        async function confirmPhase2() {
+            clearButtons();
+            addUserMessage("Yes, exactly what I need!");
+            
+            const data = getData();
+            data.business_context.phase2 = 'confirmed';
+            saveData(data);
+            
+            currentPhase = 3;
+            await delay(1000);
+            startPhase3();
+        }
+        
+        async function adjustPhase2() {
+            clearButtons();
+            addUserMessage("I'd like to focus more on revenue optimization");
+            
+            await delay(1000);
+            
+            addAIMessage(`Understood! I'll adjust the analysis focus to revenue optimization and pricing strategies.`);
+            
+            const data = getData();
+            data.business_context.phase2 = 'adjusted';
+            saveData(data);
+            
+            currentPhase = 3;
+            await delay(1500);
+            startPhase3();
+        }
+        
+        // Phase 3: Data Structure
+        async function startPhase3() {
+            addAIMessage(
+                `📋 <strong>Phase 3/3: Data Structure</strong>\n\n` +
+                `Data entity mapping:\n\n` +
+                `<strong>Time granularity:</strong> [需确认]\n` +
+                `Daily level (can aggregate to weekly/monthly)\n\n` +
+                `<strong>Primary keys:</strong> [需确认]\n` +
+                `• User: user_id\n` +
+                `• Order: order_id\n` +
+                `• Event: event_id\n\n` +
+                `<strong>Time fields:</strong> [需确认]\n` +
+                `created_at, updated_at (UTC timezone)\n\n` +
+                `<strong>Metrics caliber:</strong> [需确认]\n` +
+                `Revenue: USD, Users: Unique count`
+            );
+            
+            await delay(800);
+            
+            showButtons([
+                {
+                    label: '✓ All Correct',
+                    primary: true,
+                    action: confirmPhase3
+                },
+                {
+                    label: '✎ Adjust Mapping',
+                    primary: false,
+                    action: adjustPhase3
+                }
+            ]);
+        }
+        
+        async function confirmPhase3() {
+            clearButtons();
+            addUserMessage("All confirmed!");
+            
+            const data = getData();
+            data.business_context.phase3 = 'confirmed';
+            saveData(data);
+            
+            await delay(1000);
+            
+            addAIMessage(`✅ Perfect! I have a complete understanding of your business context. Moving to data saturation check...`);
+            
+            await delay(1500);
+            
+            goToStep(5);
+        }
+        
+        async function adjustPhase3() {
+            clearButtons();
+            addUserMessage("Time granularity is hourly, not daily");
+            
+            await delay(1000);
+            
+            addAIMessage(`Got it! Adjusted to hourly granularity. This will enable more detailed time-series analysis.`);
+            
+            const data = getData();
+            data.business_context.phase3 = 'adjusted';
+            saveData(data);
+            
+            await delay(1500);
+            
+            addAIMessage(`✅ All set! Moving to data saturation check...`);
+            
+            await delay(1500);
+            
+            goToStep(5);
+        }
+        
+        // Skip all QA
+        async function skipAll() {
+            clearButtons();
+            addUserMessage("Skip for now");
+            
+            const data = getData();
+            data.business_context = {
+                phase1: 'skipped',
+                phase2: 'skipped',
+                phase3: 'skipped'
+            };
+            saveData(data);
+            
+            await delay(800);
+            
+            addAIMessage(`Understood. I'll work with the available data. You can always refine this later.`);
+            
+            await delay(1500);
+            
+            goToStep(5);
+        }
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            // Demo mode: Always start from phase 1
+            startPhase1();
+        });
+    </script>
+</body>
+</html>
+

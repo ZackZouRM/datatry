@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload Data - Knowledge Universe</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="onboarding.css">
+</head>
+<body>
+    <!-- Progress Bar -->
+    <div class="progress-container">
+        <div class="progress-bar" id="progressBar" style="width: 40%;"></div>
+    </div>
+    
+    <!-- Step Indicator -->
+    <div class="step-indicator">Step 2 of 5</div>
+    
+    <!-- Main Content -->
+    <div class="onboarding-container">
+        <h2>Upload Your Data</h2>
+        <p class="subtitle">Import files or connect to your database</p>
+        
+        <!-- Tabs -->
+        <div class="upload-section">
+            <div class="tabs">
+                <button class="tab active" data-tab="files">📁 Upload Files</button>
+                <button class="tab" data-tab="database">🗄️ Connect Database</button>
+            </div>
+            
+            <!-- Tab 1: File Upload -->
+            <div class="tab-content active" id="files-tab">
+                <div class="upload-zone" id="uploadZone">
+                    <div class="upload-icon">📤</div>
+                    <div class="upload-text">Drag & drop files here</div>
+                    <div class="upload-hint">or click to browse</div>
+                    <div class="upload-hint" style="margin-top: 12px; font-size: 13px;">
+                        Supported: CSV, XLSX, JSON, Parquet, XML, PDF, TXT
+                    </div>
+                </div>
+                <input type="file" id="fileInput" class="file-input" multiple accept=".csv,.xlsx,.xls,.json,.parquet,.xml,.pdf,.txt">
+                
+                <!-- Uploaded Files List -->
+                <div class="uploaded-files" id="uploadedFiles"></div>
+            </div>
+            
+            <!-- Tab 2: Database Connection -->
+            <div class="tab-content" id="database-tab">
+                <div class="database-grid">
+                    <div class="db-card" data-db="mysql">
+                        <div class="db-icon">🐬</div>
+                        <div class="db-name">MySQL</div>
+                    </div>
+                    <div class="db-card" data-db="postgresql">
+                        <div class="db-icon">🐘</div>
+                        <div class="db-name">PostgreSQL</div>
+                    </div>
+                    <div class="db-card" data-db="mongodb">
+                        <div class="db-icon">🍃</div>
+                        <div class="db-name">MongoDB</div>
+                    </div>
+                    <div class="db-card" data-db="snowflake">
+                        <div class="db-icon">❄️</div>
+                        <div class="db-name">Snowflake</div>
+                    </div>
+                </div>
+                
+                <div id="dbConnectionStatus" style="text-align: center; margin-top: 24px; color: var(--text-secondary);"></div>
+            </div>
+        </div>
+        
+        <button class="btn btn-primary btn-large" id="btnNext" disabled>
+            <span>Next: Start Cleaning</span>
+            <span>→</span>
+        </button>
+    </div>
+    
+    <script src="onboarding.js"></script>
+    <script>
+        const uploadZone = document.getElementById('uploadZone');
+        const fileInput = document.getElementById('fileInput');
+        const uploadedFiles = document.getElementById('uploadedFiles');
+        const btnNext = document.getElementById('btnNext');
+        const dbCards = document.querySelectorAll('.db-card');
+        const dbConnectionStatus = document.getElementById('dbConnectionStatus');
+        
+        let files = [];
+        
+        // Tab switching
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                const tabName = tab.getAttribute('data-tab');
+                
+                // Update tab styles
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                
+                // Update content
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                document.getElementById(tabName + '-tab').classList.add('active');
+            });
+        });
+        
+        // Upload zone click
+        uploadZone.addEventListener('click', () => {
+            fileInput.click();
+        });
+        
+        // Drag and drop
+        uploadZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadZone.classList.add('dragover');
+        });
+        
+        uploadZone.addEventListener('dragleave', () => {
+            uploadZone.classList.remove('dragover');
+        });
+        
+        uploadZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadZone.classList.remove('dragover');
+            handleFiles(e.dataTransfer.files);
+        });
+        
+        // File input change
+        fileInput.addEventListener('change', (e) => {
+            handleFiles(e.target.files);
+        });
+        
+        // Handle uploaded files
+        function handleFiles(fileList) {
+            Array.from(fileList).forEach(file => {
+                // Add to array with metadata
+                const fileData = {
+                    name: file.name,
+                    size: file.size,
+                    type: file.type || 'unknown',
+                    rows: Math.floor(Math.random() * 100000) + 10000,
+                    columns: Math.floor(Math.random() * 20) + 5
+                };
+                files.push(fileData);
+                
+                // Create file item UI
+                const fileItem = document.createElement('div');
+                fileItem.className = 'file-item fade-in';
+                fileItem.innerHTML = `
+                    <div class="file-info">
+                        <div class="file-icon">📄</div>
+                        <div class="file-details">
+                            <div class="file-name">${file.name}</div>
+                            <div class="file-size">${formatFileSize(file.size)}</div>
+                        </div>
+                    </div>
+                    <button class="file-remove" onclick="removeFile('${file.name}')">✕</button>
+                `;
+                uploadedFiles.appendChild(fileItem);
+            });
+            
+            updateNextButton();
+        }
+        
+        // Remove file
+        window.removeFile = function(fileName) {
+            files = files.filter(f => f.name !== fileName);
+            
+            // Remove from UI
+            const fileItems = uploadedFiles.children;
+            for (let item of fileItems) {
+                if (item.querySelector('.file-name').textContent === fileName) {
+                    item.remove();
+                    break;
+                }
+            }
+            
+            updateNextButton();
+        };
+        
+        // Database connection
+        dbCards.forEach(card => {
+            card.addEventListener('click', async function() {
+                const dbType = this.getAttribute('data-db');
+                
+                // Visual feedback
+                dbCards.forEach(c => c.classList.remove('selected'));
+                this.classList.add('selected');
+                
+                // Simulate connection
+                dbConnectionStatus.innerHTML = `<div class="spinner"></div> Connecting to ${dbType}...`;
+                
+                await delay(1500);
+                
+                dbConnectionStatus.innerHTML = `✅ Connected to ${dbType}`;
+                
+                await delay(500);
+                
+                dbConnectionStatus.innerHTML = `📊 Scanning tables...`;
+                
+                await delay(1000);
+                
+                // Add mock database tables as "files"
+                const mockTables = [
+                    { name: `${dbType}_users.table`, size: 2400000, rows: 50000, columns: 15 },
+                    { name: `${dbType}_orders.table`, size: 1800000, rows: 35000, columns: 12 },
+                    { name: `${dbType}_events.table`, size: 3200000, rows: 120000, columns: 8 }
+                ];
+                
+                files.push(...mockTables);
+                
+                dbConnectionStatus.innerHTML = `✅ Found ${mockTables.length} tables`;
+                
+                // Switch to files tab to show imported tables
+                document.querySelector('.tab[data-tab="files"]').click();
+                
+                // Display tables
+                mockTables.forEach(table => {
+                    const fileItem = document.createElement('div');
+                    fileItem.className = 'file-item fade-in';
+                    fileItem.innerHTML = `
+                        <div class="file-info">
+                            <div class="file-icon">🗄️</div>
+                            <div class="file-details">
+                                <div class="file-name">${table.name}</div>
+                                <div class="file-size">${table.rows.toLocaleString()} rows × ${table.columns} columns</div>
+                            </div>
+                        </div>
+                        <button class="file-remove" onclick="removeFile('${table.name}')">✕</button>
+                    `;
+                    uploadedFiles.appendChild(fileItem);
+                });
+                
+                updateNextButton();
+            });
+        });
+        
+        // Update next button state
+        function updateNextButton() {
+            btnNext.disabled = files.length === 0;
+        }
+        
+        // Next button
+        btnNext.addEventListener('click', () => {
+            if (files.length > 0) {
+                saveData({ data_sources: files });
+                goToStep(3);
+            }
+        });
+        
+        // Initialize (demo mode: no pre-loaded data)
+        document.addEventListener('DOMContentLoaded', () => {
+            updateNextButton();
+        });
+    </script>
+</body>
+</html>
+

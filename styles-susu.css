@@ -448,19 +448,35 @@ body {
   transform: translateY(-2px);
 }
 
-/* Core卡片强化 - 双层阴影+背景微染色 */
+/* Core卡片强化 - 反色设计（深蓝背景+白色文字） */
 .data-card.core {
-  background: linear-gradient(135deg, #FFFFFF 0%, #F0F8FA 100%);  /* 微蓝渐变 */
+  background: #5A95A8 !important;  /* 深蓝色背景 */
   border: none;
-  box-shadow: 0 0 0 1px rgba(122, 184, 204, 0.4),  /* 内描边 */
-              0 8px 24px rgba(122, 184, 204, 0.25);  /* 外阴影 */
-  transform: scale(1.02);  /* 微微放大 */
+  box-shadow: 0 0 0 2px rgba(90, 149, 168, 0.5),  /* 内描边 */
+              0 8px 24px rgba(90, 149, 168, 0.35);  /* 外阴影 */
+  transform: scale(1.05);  /* 稍微放大 */
 }
 
 .data-card.core:hover {
-  box-shadow: 0 0 0 2px rgba(122, 184, 204, 0.6),
-              0 12px 32px rgba(122, 184, 204, 0.35);
-  transform: scale(1.02) translateY(-2px);
+  box-shadow: 0 0 0 3px rgba(90, 149, 168, 0.7),
+              0 12px 32px rgba(90, 149, 168, 0.45);
+  transform: scale(1.05) translateY(-2px);
+}
+
+/* Core卡片内所有文字为白色 */
+.data-card.core,
+.data-card.core *,
+.data-card.core .card-title,
+.data-card.core .card-type,
+.data-card.core .stat-label,
+.data-card.core .stat-value,
+.data-card.core .card-badge {
+  color: white !important;
+}
+
+.data-card.core .card-badge {
+  background: rgba(255, 255, 255, 0.25) !important;
+  color: white !important;
 }
 
 .data-card:hover .card-actions {
@@ -805,7 +821,7 @@ body {
 .chat-messages {
   flex: 1;
   overflow-y: auto;
-  padding: 20px;
+  padding: 24px 20px 20px 20px;  /* 顶部增加padding */
   display: flex;
   flex-direction: column;
   gap: 15px;

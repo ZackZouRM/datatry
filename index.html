@@ -1,11 +1,251 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="refresh" content="0; url=./index-susu.html">
-    <title>Redirecting...</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Knowledge Universe - Susu Version</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css?v=2.0">
 </head>
 <body>
-    <p>Redirecting to main application...</p>
+    <!-- Top Navigation -->
+    <header class="top-nav">
+        <div class="nav-left">
+            <span class="universe-name" id="universeNameNav">Q1 Growth Analysis</span>
+        </div>
+        <div class="nav-right">
+            <button class="btn-icon" title="Messages">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                </svg>
+            </button>
+            <button class="btn-icon" title="Settings">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="3"></circle>
+                    <path d="M12 1v6m0 6v6m6-12h-6m-6 0H1m17.66-1.32l-4.24 4.24m-6.84 0L2.34 5.68M22 12h-6m-6 0H4m17.66 6.32l-4.24-4.24m-6.84 0l-4.24 4.24"></path>
+                </svg>
+            </button>
+            <button class="btn-icon profile-menu-btn" title="Profile" id="profileMenuBtn">
+                @Sarah
+            </button>
+            
+            <!-- Profile Dropdown Menu -->
+            <div class="profile-dropdown hidden" id="profileDropdown">
+                <a href="index-selector.html" class="dropdown-item">
+                    <span>⇄</span>
+                    <span>Switch Version (Susu)</span>
+                </a>
+                <div class="dropdown-divider"></div>
+                <div class="dropdown-item" onclick="alert('Profile settings')">
+                    <span>⚙</span>
+                    <span>Settings</span>
+                </div>
+                <div class="dropdown-item" onclick="alert('Logout')">
+                    <span>↗</span>
+                    <span>Logout</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Layout: Left-Right -->
+    <div class="main-layout">
+        <!-- Left: Card Network Canvas (All in SVG) -->
+        <div class="card-network-canvas">
+            <!-- 数据总览面板 -->
+            <div class="data-overview-panel">
+                <div class="overview-stats">
+                    <div class="stat-item">
+                        <span class="stat-label">Data Saturation</span>
+                        <span class="stat-value" id="dataSaturation">78%</span>
+                        <div class="saturation-bar">
+                            <div class="saturation-fill" style="width: 78%"></div>
+                        </div>
+                    </div>
+                    <div class="stat-divider"></div>
+                    <div class="stat-item">
+                        <span class="stat-label">Subjects</span>
+                        <span class="stat-value" id="totalSubjects">5</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Nodes</span>
+                        <span class="stat-value" id="totalNodes">21</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Data Size</span>
+                        <span class="stat-value" id="totalDataSize">1.2GB</span>
+                    </div>
+                </div>
+                <button class="btn-upload-data" onclick="handleUploadData()">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                        <path d="M8 10V3M8 3L5 6M8 3L11 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        <path d="M3 10V13H13V10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                    </svg>
+                    <span>Upload Data</span>
+                </button>
+            </div>
+            
+            <!-- 复位按钮（右下角） -->
+            <button class="reset-layout-btn" onclick="autoLayout()" title="Reset Layout">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 10c-1.5-4-5.5-7-10-7S3 6 1.5 10"></path>
+                    <path d="M3 14c1.5 4 5.5 7 10 7s8.5-3 10-7"></path>
+                    <polyline points="21 6 21 10 17 10"></polyline>
+                    <polyline points="3 18 3 14 7 14"></polyline>
+                </svg>
+            </button>
+            
+            <svg class="unified-svg" id="unifiedSvg" viewBox="0 0 3000 2000">
+                <!-- Connection lines (底层) -->
+                <g id="connectionsGroup">
+                    <!-- Connection lines will be added by JS -->
+                </g>
+                
+                <!-- Cards (上层，使用foreignObject) -->
+                <g id="cardsGroup">
+                    <!-- Cards will be added by JS as foreignObject -->
+                    </g>
+                </svg>
+        </div>
+
+        <!-- Right: Chat Panel -->
+        <div class="info-panel">
+            <div class="chat-messages" id="chatMessages">
+                <!-- 初始建议消息由JS生成 -->
+            </div>
+            
+            <div class="chat-input-container">
+                <!-- 快捷操作栏（浮在输入框上方） -->
+                <div class="quick-actions-bar" id="quickActionsBar">
+                    <button class="quick-action-btn" id="btnAdvice">
+                        <span>✨</span>
+                        <span>Get AI Suggestions</span>
+                    </button>
+                    <button class="quick-action-btn" id="createViewBtn">
+                        <span>+</span>
+                        <span>Create View</span>
+                    </button>
+                </div>
+                
+                <!-- 输入框 -->
+                <div class="chat-input-wrapper">
+                    <!-- 附件标签容器（在输入框内） -->
+                    <div class="input-attachments" id="inputAttachments"></div>
+                    
+                    <textarea 
+                        class="chat-input" 
+                        placeholder="Ask me anything about your data..."
+                        rows="3"
+                    ></textarea>
+                    
+                    <button class="btn-send">→</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+            
+    <!-- Create View Modal -->
+    <div class="view-modal" id="viewModal">
+        <div class="view-modal-backdrop" onclick="closeViewModal()"></div>
+        <div class="view-modal-content">
+            <div class="view-modal-header">
+                <h3>Create New View</h3>
+                <button class="modal-close-btn" onclick="closeViewModal()">×</button>
+            </div>
+            <div class="view-modal-body">
+                <div class="view-templates-grid" id="viewTemplatesGrid">
+                    <!-- Free Form Template -->
+                    <div class="view-template-card" onclick="selectTemplate('freeform')">
+                        <div class="template-icon">✨</div>
+                        <div class="template-title">Free Form</div>
+                        <div class="template-desc">Create a custom view from scratch</div>
+                    </div>
+                    
+                    <div class="view-template-card" onclick="selectTemplate('analytics')">
+                        <div class="template-icon">📊</div>
+                        <div class="template-title">Analytics Dashboard</div>
+                        <div class="template-desc">Standard metrics and KPI tracking</div>
+                    </div>
+                    
+                    <div class="view-template-card" onclick="selectTemplate('monitor')">
+                        <div class="template-icon">📈</div>
+                        <div class="template-title">Monitor Dashboard</div>
+                        <div class="template-desc">Real-time data monitoring</div>
+                    </div>
+                    
+                    <div class="view-template-card" onclick="selectTemplate('report')">
+                        <div class="template-icon">📝</div>
+                        <div class="template-title">Report Builder</div>
+                        <div class="template-desc">Generate custom reports</div>
+                    </div>
+                    
+                    <div class="view-template-card" onclick="selectTemplate('goals')">
+                        <div class="template-icon">🎯</div>
+                        <div class="template-title">Goal Tracking</div>
+                        <div class="template-desc">Monitor KPI progress</div>
+                    </div>
+
+                    <div class="view-template-card" onclick="selectTemplate('sales')">
+                        <div class="template-icon">💰</div>
+                        <div class="template-title">Sales Pipeline</div>
+                        <div class="template-desc">Track sales funnel and deals</div>
+                    </div>
+
+                    <div class="view-template-card" onclick="selectTemplate('users')">
+                        <div class="template-icon">👥</div>
+                        <div class="template-title">User Analytics</div>
+                        <div class="template-desc">User behavior and engagement</div>
+                    </div>
+
+                    <div class="view-template-card" onclick="selectTemplate('financial')">
+                        <div class="template-icon">💵</div>
+                        <div class="template-title">Financial Overview</div>
+                        <div class="template-desc">Revenue and expense tracking</div>
+                    </div>
+
+                    <div class="view-template-card" onclick="selectTemplate('marketing')">
+                        <div class="template-icon">📢</div>
+                        <div class="template-title">Marketing Performance</div>
+                        <div class="template-desc">Campaign metrics and ROI</div>
+                    </div>
+
+                    <div class="view-template-card" onclick="selectTemplate('product')">
+                        <div class="template-icon">🚀</div>
+                        <div class="template-title">Product Metrics</div>
+                        <div class="template-desc">Feature usage and adoption</div>
+                    </div>
+                </div>
+
+                <!-- Requirements Input Section -->
+                <div class="view-requirements-section" id="viewRequirementsSection" style="display: none;">
+                    <div class="requirements-header">
+                        <h4 id="selectedTemplateName">Free Form View</h4>
+                        <p id="selectedTemplateDesc">Describe your custom view requirements</p>
+                    </div>
+                    <div class="requirements-input-wrapper">
+                        <textarea 
+                            id="viewRequirements" 
+                            class="requirements-textarea" 
+                            placeholder="Please describe your requirements in detail. For example:
+- What data do you want to display?
+- How should it be visualized?
+- Any specific metrics or KPIs?
+- What time range should be shown?"
+                            rows="6"
+                        ></textarea>
+                        <div class="requirements-actions">
+                            <button class="btn-secondary" onclick="backToTemplates()">Back</button>
+                            <button class="btn-primary" onclick="submitViewRequest()">Submit Request</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js?v=2.0"></script>
 </body>
 </html>

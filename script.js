@@ -1,2751 +1,1408 @@
 // ============================================
-// Knowledge Universe - Main JavaScript
-// 星际数据分析系统 - 交互逻辑
-// 正确流程：全屏星球视图 → 数据导入 → QA → 饱满度 → 左右分栏
+// Susu Version - 完全重写
+// 每种类型都有多张卡片，信息丰富均匀
 // ============================================
 
-// 全局状态
-const state = {
-  currentScene: 'flight',
-  universeName: '',
-  planets: [],
-  selectedPlanet: null,
-  chatHistory: [],
-  dataSources: [],
-  saturation: 0,
-  businessContext: null,
-  dataStructure: null
+// 布局配置（恢复原始大小，错落分布）
+const LAYOUT = {
+  CARD_W: 240,  // 恢复原始宽度
+  CARD_H: 180,  // 恢复原始高度
+  CORE_W: 280,  // 核心卡片原始大小
+  GAP_X: 300,   // 水平间距
+  GAP_Y: 220,   // 垂直间距
+  START_X: 400,  // 起始X位置，让Core在中心
+  START_Y: 300   // 起始Y位置
 };
 
-// 全局函数 - 创建新宇宙
-window.goToCreateUniverse = function() {
-  console.log('goToCreateUniverse called!');
-  showScene('welcome');
-};
+// 固定偏移模式（制造更大的错落感）
+const offsetPatterns = [
+  { dx: -40, dy: -50 },
+  { dx: 60, dy: -30 },
+  { dx: -30, dy: 70 },
+  { dx: 45, dy: 40 },
+  { dx: 0, dy: -60 },
+  { dx: 70, dy: 20 },
+  { dx: -50, dy: 30 },
+  { dx: 30, dy: -45 },
+  { dx: -25, dy: 55 },
+  { dx: 50, dy: -25 },
+  { dx: -35, dy: 0 },
+  { dx: 15, dy: 50 },
+  { dx: -45, dy: -20 },
+  { dx: 65, dy: 35 },
+  { dx: -15, dy: -55 },
+  { dx: 35, dy: 25 },
+  { dx: -60, dy: 45 },
+  { dx: 25, dy: -35 },
+  { dx: -40, dy: 60 },
+  { dx: 55, dy: -15 }
+];
 
-// 全局函数 - SVG点击
-window.clickNewGalaxy = function() {
-  console.log('clickNewGalaxy called!');
-  showScene('welcome');
-};
+// 卡片数据（重新分配到整个画布，更均匀分布）
+const cards = [
+  // === Row 0 (顶部，分散) ===
+  { id: 'events', title: 'User Events', type: 'Data', badge: '94%', row: 0, col: 0,
+    stats: { 'Total': '156.2K', 'Users': '45.9K', 'Avg': '3.4', 'Mobile': '62%' } },
+  
+  { id: 'revenue-kpi', title: 'Revenue Dashboard', type: 'KPI', cardType: 'kpi', badge: 'Live', row: 0, col: 1, width: 260, height: 240,
+    content: {
+      metrics: [
+        { label: 'Total Revenue', value: '$1.24M', trend: 'up', change: '+18%' },
+        { label: 'MRR', value: '$156K', trend: 'up', change: '+12%' },
+        { label: 'ARPU', value: '$27.50', trend: 'up', change: '+3%' },
+        { label: 'Churn', value: '4.2%', trend: 'down', change: '-1.1%' }
+      ]
+    }
+  },
+  
+  { id: 'orders', title: 'Orders', type: 'Data', badge: '89%', row: 0, col: 2,
+    stats: { 'Total': '23.6K', 'Revenue': '$1.2M', 'AOV': '$52.85', 'Rate': '87%' } },
+  
+  { id: 'content-calendar', title: 'Content Pipeline', type: 'Checklist', cardType: 'checklist', badge: '5/8', row: 0, col: 3, width: 260, height: 240,
+    content: {
+      items: [
+        { done: true, text: 'Blog: Email best practices' },
+        { done: true, text: 'Video: Product showcase' },
+        { done: true, text: 'Social: User testimonials' },
+        { done: true, text: 'Guide: Getting started' },
+        { done: true, text: 'Infographic: Q1 results' },
+        { done: false, text: 'Webinar: Growth strategies' },
+        { done: false, text: 'Case study: Success story' },
+        { done: false, text: 'Newsletter: Monthly recap' }
+      ]
+    }
+  },
+  
+  { id: 'growth-plan', title: 'Q2 Growth Strategy', type: 'Document', cardType: 'document', row: 0, col: 4, width: 300, height: 260,
+    content: { text: 'Focus on email marketing retention. Target: +15% by EOQ2.\n\nKey Initiatives:\n• Cart abandonment campaign\n• Loyalty program launch\n• Personalized recommendations\n• Mobile app optimization' } },
+  
+  // === Row 1 (次顶部) ===
+  { id: 'sessions', title: 'Sessions', type: 'Data', badge: '91%', row: 1, col: 0,
+    stats: { 'Total': '445K', 'Duration': '8.3min', 'Pages': '4.2', 'Bounce': '34%' } },
+  
+  { id: 'q2-tasks', title: 'Q2 Action Items', type: 'Checklist', cardType: 'checklist', badge: '4/9', row: 1, col: 1, width: 270, height: 260,
+    content: {
+      items: [
+        { done: true, text: 'Analyze cohort retention' },
+        { done: true, text: 'Review channel ROI' },
+        { done: true, text: 'Export Q1 report' },
+        { done: true, text: 'Update pricing strategy' },
+        { done: false, text: 'Launch A/B test framework' },
+        { done: false, text: 'Optimize mobile checkout' },
+        { done: false, text: 'Team strategy meeting' },
+        { done: false, text: 'Review analytics dashboard' },
+        { done: false, text: 'Plan Q3 campaigns' }
+      ]
+    }
+  },
+  
+  { id: 'campaign-assets', title: 'Campaign Assets', type: 'Media', cardType: 'media', badge: '24 items', row: 1, col: 2, width: 300, height: 280,
+    content: {
+      images: [
+        { url: 'pic/45124a81-d220-4b99-8d73-5a02ee5e68ef.webp', name: 'Summer Sale Banner' },
+        { url: 'pic/5f57e1af-4c4a-455a-877e-3a44c1ef67f8.webp', name: 'Product Hero' },
+        { url: 'pic/694d124e-4c6a-4b80-af1b-1be91708fe38.webp', name: 'Email Header' },
+        { url: 'pic/a9216aeb-9e6b-4e11-821b-a153aee065f8.webp', name: 'Social Post' },
+        { url: 'pic/acbf268e-f06c-4e7e-8250-034ae605a4c8.webp', name: 'Landing Page' },
+        { url: 'pic/d04b644f-d314-4401-ac0a-b4cbc0723a2c.webp', name: 'Newsletter' }
+      ]
+    }
+  },
+  
+  // === Row 2 (中心行，Core在这) ===
+  { id: 'product-photos', title: 'Product Photography', type: 'Media', cardType: 'media', badge: '156 items', row: 2, col: 0, width: 260, height: 220,
+    content: {
+      images: [
+        { url: 'pic/f21e953a-e369-4c7b-ae17-acb282b2094d.webp', name: 'Product A' },
+        { url: 'pic/output (1) (1).webp', name: 'Product B' },
+        { url: 'pic/45124a81-d220-4b99-8d73-5a02ee5e68ef.webp', name: 'Product C' },
+        { url: 'pic/5f57e1af-4c4a-455a-877e-3a44c1ef67f8.webp', name: 'Product D' }
+      ]
+    }
+  },
+  
+  { id: 'core', title: 'Growth Metrics', type: 'Core', badge: '100%', row: 2, col: 2, isCore: true,
+    stats: { 'Growth': '+28.4%', 'Users': '45.9K', 'Revenue': '$1.24M', 'Conv': '10.7%' } },
+  
+  { id: 'user-engagement', title: 'User Engagement', type: 'KPI', cardType: 'kpi', badge: 'Live', row: 2, col: 3, width: 260, height: 240,
+    content: {
+      metrics: [
+        { label: 'DAU', value: '12.4K', trend: 'up', change: '+8%' },
+        { label: 'Session Time', value: '8.3min', trend: 'up', change: '+15%' },
+        { label: 'Retention D7', value: '42%', trend: 'up', change: '+5%' },
+        { label: 'Stickiness', value: '28%', trend: 'up', change: '+2%' }
+      ]
+    }
+  },
+  
+  { id: 'competitor-analysis', title: 'Competitor Analysis', type: 'Document', cardType: 'document', row: 1, col: 3, width: 280, height: 220,
+    content: { text: 'Market positioning review vs top 3 competitors.\n\nKey Findings:\n• Price advantage: 12%\n• Feature parity: 85%\n• Brand awareness gap\n• Opportunity in mid-market' } },
+  
+  // === Row 3 (次底部) ===
+  { id: 'optimization-tasks', title: 'Website Optimization', type: 'Checklist', cardType: 'checklist', badge: '2/6', row: 3, col: 0, width: 280, height: 220,
+    content: {
+      items: [
+        { done: true, text: 'Mobile page speed audit' },
+        { done: true, text: 'Image compression' },
+        { done: false, text: 'Lazy loading implementation' },
+        { done: false, text: 'CDN setup' },
+        { done: false, text: 'Cache optimization' },
+        { done: false, text: 'Bundle size reduction' }
+      ]
+    }
+  },
+  
+  { id: 'video-content', title: 'Video Library', type: 'Media', cardType: 'media', badge: '12 videos', row: 3, col: 1, width: 280, height: 220,
+    content: {
+      images: [
+        { url: 'pic/694d124e-4c6a-4b80-af1b-1be91708fe38.webp', name: 'How-to Video' },
+        { url: 'pic/a9216aeb-9e6b-4e11-821b-a153aee065f8.webp', name: 'Testimonial' },
+        { url: 'pic/acbf268e-f06c-4e7e-8250-034ae605a4c8.webp', name: 'Product Demo' },
+        { url: 'pic/d04b644f-d314-4401-ac0a-b4cbc0723a2c.webp', name: 'Tutorial' }
+      ]
+    }
+  },
+  
+  { id: 'roadmap', title: 'Product Roadmap H2', type: 'Document', cardType: 'document', row: 3, col: 2, width: 300, height: 200,
+    content: { text: 'H2 2024 Development Plan\n\n• Q3: Mobile redesign\n• Q3: Payment options expansion\n• Q4: Personalization engine\n• Q4: Analytics dashboard v2' } },
+  
+  { id: 'conversion-funnel', title: 'Conversion Metrics', type: 'KPI', cardType: 'kpi', badge: 'Live', row: 3, col: 3, width: 260, height: 240,
+    content: {
+      metrics: [
+        { label: 'Visit→Cart', value: '12.5%', trend: 'up', change: '+2%' },
+        { label: 'Cart→Checkout', value: '68%', trend: 'down', change: '-3%' },
+        { label: 'Checkout→Pay', value: '82%', trend: 'up', change: '+4%' },
+        { label: 'Overall CVR', value: '6.9%', trend: 'up', change: '+1%' }
+      ]
+    }
+  },
+  
+  // === Row 4 (底部) ===
+  { id: 'users', title: 'User Profiles', type: 'Data', badge: '87%', row: 4, col: 0,
+    stats: { 'Total': '45.9K', 'New': '28.3K', 'Active': '68%', 'Retention': '72%' } },
+  
+  { id: 'marketing', title: 'Marketing Channels', type: 'Data', badge: '78%', row: 4, col: 1,
+    stats: { 'Channels': '8', 'CAC': '$45', 'ROI': '3.2x', 'Top': 'Email' } },
+  
+  { id: 'products', title: 'Product Catalog', type: 'Data', badge: '72%', row: 4, col: 2,
+    stats: { 'SKUs': '1,234', 'Categories': '8', 'Top': 'Electronics', 'Price': '$87' } },
+  
+  { id: 'payments', title: 'Payment Methods', type: 'Data', badge: '85%', row: 4, col: 3,
+    stats: { 'Methods': '6', 'Success': '96%', 'Avg Time': '45s', 'Failed': '4%' } },
+  
+  { id: 'customer-insights', title: 'Customer Research Notes', type: 'Document', cardType: 'document', row: 4, col: 4, width: 290, height: 230,
+    content: { text: 'User interview synthesis (N=25)\n\nTop Pain Points:\n• Checkout too complex (60%)\n• Shipping clarity needed (45%)\n• Mobile UX issues (38%)\n• Search functionality (32%)' } }
+];
+
+// 连接关系（精简，避免混乱）
+const connections = [
+  // Core连接
+  { from: 'events', to: 'core' },
+  { from: 'orders', to: 'core' },
+  { from: 'users', to: 'core' },
+  
+  // 文档连到Core
+  { from: 'growth-plan', to: 'core' },
+  { from: 'roadmap', to: 'core' },
+  
+  // Media连到数据
+  { from: 'campaign-assets', to: 'events' },
+  { from: 'product-photos', to: 'products' },
+  
+  // Checklist连到相关
+  { from: 'q2-tasks', to: 'core' },
+  { from: 'optimization-tasks', to: 'sessions' },
+  { from: 'content-calendar', to: 'campaign-assets' },
+  
+  // KPI连到Core
+  { from: 'revenue-kpi', to: 'core' },
+  { from: 'user-engagement', to: 'users' },
+  { from: 'conversion-funnel', to: 'orders' }
+];
+
+// 计算卡片位置的函数
+function calculateCardPosition(card, index) {
+  if (!card.width) {
+    card.width = card.isCore ? LAYOUT.CORE_W : LAYOUT.CARD_W;
+  }
+  if (!card.height) {
+    card.height = LAYOUT.CARD_H;
+  }
+  
+  // 基础网格位置
+  const baseX = LAYOUT.START_X + card.col * (LAYOUT.CARD_W + LAYOUT.GAP_X);
+  const baseY = LAYOUT.START_Y + card.row * (LAYOUT.CARD_H + LAYOUT.GAP_Y);
+  
+  // 应用固定偏移（Core不偏移）
+  const pattern = card.isCore ? {dx:0, dy:0} : offsetPatterns[index % offsetPatterns.length];
+  
+  card.x = baseX + pattern.dx;
+  card.y = baseY + pattern.dy;
+  
+  // 边界检查（确保不超出viewBox）
+  const maxX = 3000 - card.width - 50;
+  const maxY = 2000 - card.height - 50;
+  
+  card.x = Math.max(50, Math.min(card.x, maxX));
+  card.y = Math.max(50, Math.min(card.y, maxY));
+  
+  // 中心点
+  card.cx = card.x + card.width / 2;
+  card.cy = card.y + card.height / 2;
+  
+  // 保存初始位置
+  if (!card.initialX) {
+    card.initialX = card.x;
+    card.initialY = card.y;
+  }
+}
+
+// 初始化所有卡片位置
+cards.forEach((card, index) => {
+  calculateCardPosition(card, index);
+});
+
+// State
+let selectedCard = null;
+let zoomLevel = 1;  // 保持原始大小
+let panOffset = { x: 0, y: 0 };  // 不偏移
 
 // ============================================
 // 初始化
 // ============================================
 
 document.addEventListener('DOMContentLoaded', () => {
-  // Detect version
-  const isCellVersion = document.querySelector('link[href="styles-cell.css"]') !== null;
-  
-  if (isCellVersion) {
-    initCellDivision();
-  } else {
-    initStarsBackground();
-    initFlyingUniverse();
-  }
-  
+  renderCards();
+  renderConnections();
   initEventListeners();
-  showScene('flight');
+  initZoomAndPan();
+  updateDataOverview();
+  
+  // 自动适应视图 - 暂时禁用，避免卡片被缩小
+  // setTimeout(() => fitToView(), 100);
+  
+  // 显示初始建议
+  setTimeout(() => showInitialSuggestions(), 200);
 });
 
-// ============================================
-// 细胞分裂初始化 (Cell Version)
-// ============================================
-
-function initCellDivision() {
-  const circulatorySystem = document.getElementById('circulatorySystem');
-  if (!circulatorySystem) return;
+// 自动适应（显示所有卡片）
+function fitToView() {
+  const canvas = document.querySelector('.card-network-canvas');
+  if (!canvas) return;
   
-  // Create fixed heart nodes (使用固定像素坐标，确保精确匹配)
-  const heartPositions = [
-    // 主心脏（右下，最大）- viewBox 1600x900
-    { left: 1248, top: 675, name: 'Main Heart', size: 'large', delay: 0 },
-    
-    // 周边小心脏（避开左上和中间）
-    { left: 1360, top: 162, name: 'Research', size: 'small', delay: 0.3 },
-    { left: 288, top: 702, name: 'Product', size: 'small', delay: 0.6 },
-    { left: 960, top: 108, name: 'Reading', size: 'small', delay: 0.9 },
-    { left: 192, top: 495, name: 'Operations', size: 'small', delay: 1.2 }
-  ];
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
   
-  heartPositions.forEach((pos, index) => {
-    const heartNode = document.createElement('div');
-    heartNode.className = `fixed-heart-node ${pos.size}`;
-    // 转换为百分比（基于viewBox 1600x900）
-    heartNode.style.left = ((pos.left / 1600) * 100) + '%';
-    heartNode.style.top = ((pos.top / 900) * 100) + '%';
-    heartNode.style.animationDelay = pos.delay + 's';
-    
-    heartNode.innerHTML = `
-      <div class="heart-outer-ring"></div>
-      <div class="heart-core"></div>
-      <div class="heart-node-label">${pos.name}</div>
-    `;
-    
-    circulatorySystem.appendChild(heartNode);
+  cards.forEach(card => {
+    minX = Math.min(minX, card.x);
+    minY = Math.min(minY, card.y);
+    maxX = Math.max(maxX, card.x + card.width);
+    maxY = Math.max(maxY, card.y + card.height);
   });
   
-  // Add blood flow particles
-  createBloodFlowParticles();
-}
-
-function createBloodFlowParticles() {
-  const network = document.getElementById('bloodVesselNetwork');
-  if (!network) return;
+  const contentWidth = maxX - minX + 120;
+  const contentHeight = maxY - minY + 120;
   
-  const paths = network.querySelectorAll('.blood-vessel');
-  if (paths.length === 0) return;
+  const canvasRect = canvas.getBoundingClientRect();
+  zoomLevel = Math.min(canvasRect.width / contentWidth, canvasRect.height / contentHeight, 1) * 0.9;
   
-  // 持续创建血液粒子（循环）
-  function createParticle() {
-    const randomPath = paths[Math.floor(Math.random() * paths.length)];
-    const pathLength = randomPath.getTotalLength();
-    
-    const particle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-    particle.setAttribute('r', '5');
-    particle.setAttribute('fill', '#DC2626');
-    particle.setAttribute('class', 'blood-particle-svg');
-    particle.setAttribute('filter', 'drop-shadow(0 0 4px #DC2626)');
-    
-    let progress = 0;
-    const speed = 0.015; // 流动速度
-    
-    const animate = setInterval(() => {
-      progress += speed;
-      if (progress > 1) {
-        clearInterval(animate);
-        particle.remove();
-        // 粒子消失后，随机延迟再创建新的
-        setTimeout(createParticle, Math.random() * 500);
-      } else {
-        const point = randomPath.getPointAtLength(progress * pathLength);
-        particle.setAttribute('cx', point.x);
-        particle.setAttribute('cy', point.y);
-        // 淡入淡出效果
-        const opacity = Math.sin(progress * Math.PI) * 0.9;
-        particle.setAttribute('opacity', opacity);
-      }
-    }, 30);
-    
-    network.appendChild(particle);
-  }
+  panOffset.x = (canvasRect.width - contentWidth * zoomLevel) / 2 - minX * zoomLevel + 60 * zoomLevel;
+  panOffset.y = (canvasRect.height - contentHeight * zoomLevel) / 2 - minY * zoomLevel + 60 * zoomLevel;
   
-  // 初始创建12个粒子，错开时间
-  for (let i = 0; i < 12; i++) {
-    setTimeout(() => createParticle(), i * 300);
-  }
+  applyTransform();
 }
 
 // ============================================
-// 飞行宇宙初始化
+// 根据类型渲染卡片内容
 // ============================================
 
-function initFlyingUniverse() {
-  const starsContainer = document.getElementById('starsFlying');
-  const planetsContainer = document.getElementById('knowledgePlanetsFlying');
-  
-  if (!starsContainer || !planetsContainer) return;
-  
-  // Create flying stars
-  for (let i = 0; i < 100; i++) {
-    const star = document.createElement('div');
-    star.className = 'star-flying';
-    star.style.left = Math.random() * 100 + '%';
-    star.style.top = Math.random() * 100 + '%';
-    star.style.width = (Math.random() * 3 + 1) + 'px';
-    star.style.height = star.style.width;
-    star.style.animationDelay = Math.random() * 3 + 's';
-    star.style.animationDuration = (Math.random() * 2 + 2) + 's';
-    starsContainer.appendChild(star);
-  }
-  
-  // Create flying knowledge planets - 从四面八方飞来
-  const planetThemes = [
-    { name: 'E-commerce', color: '#6EC287', glow: 'rgba(110, 194, 135, 0.8)' },
-    { name: 'Reading Notes', color: '#4DD4E8', glow: 'rgba(77, 212, 232, 0.8)' },
-    { name: 'Research Papers', color: '#F4A742', glow: 'rgba(244, 167, 66, 0.8)' },
-    { name: 'User Profiles', color: '#D94949', glow: 'rgba(217, 73, 73, 0.8)' },
-    { name: 'Finance Reports', color: '#6EC287', glow: 'rgba(110, 194, 135, 0.8)' },
-    { name: 'Market Research', color: '#4DD4E8', glow: 'rgba(77, 212, 232, 0.8)' },
-    { name: 'Product Data', color: '#F4A742', glow: 'rgba(244, 167, 66, 0.8)' },
-    { name: 'Operations', color: '#6EC287', glow: 'rgba(110, 194, 135, 0.8)' },
-    { name: 'Customer Feedback', color: '#D94949', glow: 'rgba(217, 73, 73, 0.8)' },
-    { name: 'Competition', color: '#4DD4E8', glow: 'rgba(77, 212, 232, 0.8)' }
-  ];
-  
-  // 定义8个方向（从中心向外）
-  const directions = [
-    { x: -20, y: -20 },   // 左上
-    { x: 50, y: -20 },    // 正上
-    { x: 120, y: -20 },   // 右上
-    { x: 120, y: 50 },    // 正右
-    { x: 120, y: 120 },   // 右下
-    { x: 50, y: 120 },    // 正下
-    { x: -20, y: 120 },   // 左下
-    { x: -20, y: 50 },    // 正左
-    { x: -15, y: -15 },   // 左上远
-    { x: 115, y: 115 }    // 右下远
-  ];
-  
-  planetThemes.forEach((theme, index) => {
-    const planet = document.createElement('div');
-    planet.className = 'flying-planet';
-    const direction = directions[index];
-    
-    // 所有星球从中心(50%, 50%)出发
-    planet.style.setProperty('--end-x', direction.x + '%');
-    planet.style.setProperty('--end-y', direction.y + '%');
-    
-    planet.style.animationDelay = (index * 1.6) + 's';  // 错开时间（2倍）
-    planet.style.animationDuration = (Math.random() * 4 + 10) + 's';  // 10-14秒（再慢0.5倍）
-    
-    planet.innerHTML = `
-      <div class="flying-planet-circle" style="
-        border-color: ${theme.color};
-        filter: drop-shadow(0 0 20px ${theme.glow});
-      "></div>
-      <div class="flying-planet-label">${theme.name}</div>
-    `;
-    
-    planetsContainer.appendChild(planet);
-  });
-}
-
-function adjustColorBrightness(color, amount) {
-  return color; // 简化版本
-}
-
-// ============================================
-// 星空背景生成
-// ============================================
-
-function initStarsBackground() {
-  const backgrounds = document.querySelectorAll('.stars-background');
-  backgrounds.forEach(bg => {
-    // Skip if already populated
-    if (bg.children.length > 0) return;
-    
-    for (let i = 0; i < 150; i++) {
-      const star = document.createElement('div');
-      star.className = 'star';
-      star.style.left = Math.random() * 100 + '%';
-      star.style.top = Math.random() * 100 + '%';
-      star.style.animationDelay = Math.random() * 3 + 's';
-      star.style.animationDuration = (Math.random() * 2 + 2) + 's';
-      bg.appendChild(star);
-    }
-  });
-}
-
-// ============================================
-// 场景切换
-// ============================================
-
-function showScene(sceneName) {
-  const scenes = document.querySelectorAll('.scene');
-  scenes.forEach(scene => scene.classList.remove('active'));
-  
-  const targetScene = document.getElementById(`scene-${sceneName}`);
-  if (targetScene) {
-    targetScene.classList.add('active');
-    state.currentScene = sceneName;
-  }
-}
-
-// ============================================
-// 事件监听器
-// ============================================
-
-function initEventListeners() {
-  // Scene 0: Start Journey Button
-  const startJourneyBtn = document.getElementById('startJourneyBtn');
-  if (startJourneyBtn) {
-    startJourneyBtn.addEventListener('click', () => {
-      showScene('auth');
-    });
-  }
-
-  // Scene 1: Auth Tabs
-  document.querySelectorAll('.auth-tab').forEach(tab => {
-    tab.addEventListener('click', (e) => {
-      document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
-      document.querySelectorAll('.auth-form').forEach(f => f.classList.remove('active'));
-      
-      e.target.classList.add('active');
-      const tabName = e.target.dataset.tab;
-      document.getElementById(tabName + 'Form').classList.add('active');
-    });
-  });
-
-  // Send Verification Code
-  const sendCodeBtn = document.getElementById('sendCodeBtn');
-  if (sendCodeBtn) {
-    sendCodeBtn.addEventListener('click', () => {
-      let countdown = 60;
-      sendCodeBtn.disabled = true;
-      sendCodeBtn.textContent = `${countdown}s`;
-      
-      const timer = setInterval(() => {
-        countdown--;
-        if (countdown <= 0) {
-          clearInterval(timer);
-          sendCodeBtn.disabled = false;
-          sendCodeBtn.textContent = '发送验证码';
-        } else {
-          sendCodeBtn.textContent = `${countdown}s`;
-        }
-      }, 1000);
-      
-      // Simulate sending
-      setTimeout(() => {
-        alert('Verification code sent! (Demo mode: any 6 digits work)');
-      }, 500);
-    });
-  }
-
-  // Login Button
-  const loginBtn = document.getElementById('loginBtn');
-  const googleLoginBtn = document.getElementById('googleLoginBtn');
-  
-  if (loginBtn) {
-    loginBtn.addEventListener('click', () => {
-      // Simulate login
-      showScene('dashboard');
-    });
-  }
-  
-  if (googleLoginBtn) {
-    googleLoginBtn.addEventListener('click', () => {
-      // Simulate Google login
-      showScene('dashboard');
-    });
-  }
-
-  // Scene 2: Create Universe Button (Multiple attempts)
-  function setupCreateButton() {
-    const createUniverseBtn = document.getElementById('createUniverseBtn');
-    console.log('Create Universe Button found:', createUniverseBtn);
-    
-    if (createUniverseBtn) {
-      console.log('Adding click listener to button');
-      createUniverseBtn.onclick = function() {
-        console.log('Button clicked!');
-        showScene('welcome');
-      };
-    }
-  }
-  
-  // Try immediately
-  setupCreateButton();
-  
-  // Try after delay
-  setTimeout(setupCreateButton, 500);
-  setTimeout(setupCreateButton, 1000);
-
-  // Click on center "+" to create - SVG circle
-  function setupSVGClick() {
-    const newGalaxyClickArea = document.getElementById('newGalaxyClickArea');
-    console.log('SVG Click Area found:', newGalaxyClickArea);
-    
-    if (newGalaxyClickArea) {
-      newGalaxyClickArea.onclick = function() {
-        console.log('SVG Circle clicked!');
-        showScene('welcome');
-      };
-    }
-  }
-  
-  setTimeout(setupSVGClick, 500);
-  setTimeout(setupSVGClick, 1000);
-  setTimeout(setupSVGClick, 2000);
-
-  // Click on existing galaxy to open
-  document.querySelectorAll('.galaxy-item').forEach(item => {
-    item.addEventListener('click', (e) => {
-      const id = e.currentTarget.dataset.id;
-      // Simulate opening existing project
-      state.universeName = e.currentTarget.querySelector('.galaxy-label').textContent;
-      showScene('main');
-      setTimeout(() => {
-        buildMainUniverseView();
-        addAIMessage(`Welcome back to ${state.universeName}!`, { noTyping: true });
-        updateSuggestions([
-          { label: 'Continue Analysis', action: () => {} },
-          { label: 'View Reports', action: () => {} }
-        ]);
-      }, 500);
-    });
-  });
-
-  // Scene 3: Welcome - Universe Name Input
-  const universeInput = document.getElementById('universeNameInput');
-  if (universeInput) {
-    universeInput.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter' && universeInput.value.trim()) {
-        state.universeName = universeInput.value.trim();
-        startUniverseInitialization();
-      }
-    });
-  }
-
-  // Upload Zone Drop Area
-  const zoneDropArea = document.getElementById('zoneDropArea');
-  const fileInputHidden = document.getElementById('fileInputHidden');
-  
-  if (zoneDropArea && fileInputHidden) {
-    // Click to browse
-    zoneDropArea.addEventListener('click', () => {
-      fileInputHidden.click();
-    });
-    
-    // Drag and drop
-    zoneDropArea.addEventListener('dragover', (e) => {
-      e.preventDefault();
-      zoneDropArea.classList.add('drag-over');
-    });
-    
-    zoneDropArea.addEventListener('dragleave', () => {
-      zoneDropArea.classList.remove('drag-over');
-    });
-    
-    zoneDropArea.addEventListener('drop', (e) => {
-      e.preventDefault();
-      zoneDropArea.classList.remove('drag-over');
-      handleFilesSelected(e.dataTransfer.files);
-    });
-    
-    // File input change
-    fileInputHidden.addEventListener('change', (e) => {
-      handleFilesSelected(e.target.files);
-    });
-  }
-
-  // Database Quick Connect Buttons
-  document.querySelectorAll('.db-quick-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const dbType = btn.dataset.db;
-      if (dbType) {
-        connectDatabaseQuick(dbType);
-      }
-    });
-  });
-
-  // Database More Button
-  const dbMoreBtn = document.getElementById('dbMoreBtn');
-  const dbMoreOptions = document.getElementById('dbMoreOptions');
-  
-  if (dbMoreBtn && dbMoreOptions) {
-    dbMoreBtn.addEventListener('click', () => {
-      dbMoreOptions.classList.toggle('hidden');
-      dbMoreBtn.querySelector('span:first-child').textContent = 
-        dbMoreOptions.classList.contains('hidden') ? '+' : '−';
-    });
-  }
-
-  // Chat Input - Bottom Panel (Ingestion Scene)
-  const chatInputBottom = document.getElementById('chatInputBottom');
-  const sendBtnBottom = document.getElementById('sendBtnBottom');
-  
-  if (chatInputBottom && sendBtnBottom) {
-    sendBtnBottom.addEventListener('click', () => sendChatMessageBottom());
-    chatInputBottom.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        sendChatMessageBottom();
-      }
-    });
-  }
-
-
-  // Chat Input - Side Panel (Main Scene)
-  const chatInput = document.getElementById('chatInput');
-  const sendBtn = document.getElementById('sendBtn');
-  
-  if (chatInput && sendBtn) {
-    sendBtn.addEventListener('click', () => sendChatMessage());
-    chatInput.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        sendChatMessage();
-      }
-    });
-  }
-
-  // Modal Close Buttons
-  document.querySelectorAll('.modal-close').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      const modal = e.target.closest('.modal');
-      hideModal(modal.id);
-    });
-  });
-
-
-  // Create View Button
-  const createViewBtn = document.getElementById('createViewBtn');
-  if (createViewBtn) {
-    createViewBtn.addEventListener('click', () => {
-      showModal('createViewModal');
-    });
-  }
-
-  // Close Planet Details Button
-  const closePlanetDetails = document.getElementById('closePlanetDetails');
-  if (closePlanetDetails) {
-    closePlanetDetails.addEventListener('click', () => {
-      deselectPlanet();
-    });
-  }
-
-  // Click on universe view to deselect
-  const universeView = document.getElementById('universeView');
-  if (universeView) {
-    universeView.addEventListener('click', (e) => {
-      // Only deselect if clicking on the container itself, not on planets
-      if (e.target === universeView || e.target.tagName === 'svg') {
-        deselectPlanet();
-      }
-    });
-  }
-
-  // Message History Button
-  const messageHistoryBtn = document.getElementById('messageHistoryBtn');
-  const messageHistoryPanel = document.getElementById('messageHistoryPanel');
-  const closeHistoryBtn = document.getElementById('closeHistoryBtn');
-  
-  if (messageHistoryBtn) {
-    messageHistoryBtn.addEventListener('click', () => {
-      toggleMessageHistory();
-    });
-  }
-  
-  if (closeHistoryBtn) {
-    closeHistoryBtn.addEventListener('click', () => {
-      messageHistoryPanel.classList.add('hidden');
-    });
-  }
-
-  // View Template Selection
-  document.querySelectorAll('.view-template').forEach(template => {
-    template.addEventListener('click', (e) => {
-      const type = e.currentTarget.dataset.type;
-      createView(type);
-    });
-  });
-
-  // Close Create View Modal
-  const closeCreateViewModal = document.getElementById('closeCreateViewModal');
-  if (closeCreateViewModal) {
-    closeCreateViewModal.addEventListener('click', () => {
-      hideModal('createViewModal');
-    });
-  }
-
-  // Database Modal
-  const closeDatabaseModal = document.getElementById('closeDatabaseModal');
-  const cancelDatabase = document.getElementById('cancelDatabase');
-  if (closeDatabaseModal) {
-    closeDatabaseModal.addEventListener('click', () => hideModal('databaseModal'));
-  }
-  if (cancelDatabase) {
-    cancelDatabase.addEventListener('click', () => hideModal('databaseModal'));
-  }
-
-  // Database Type Selection
-  document.querySelectorAll('.db-type-card').forEach(card => {
-    card.addEventListener('click', (e) => {
-      const type = e.currentTarget.dataset.type;
-      selectDatabaseType(type);
-    });
-  });
-
-  // Test Connection Button
-  const testConnectionBtn = document.getElementById('testConnectionBtn');
-  if (testConnectionBtn) {
-    testConnectionBtn.addEventListener('click', () => testDatabaseConnection());
-  }
-
-  // Back to Types Button
-  const backToTypesBtn = document.getElementById('backToTypesBtn');
-  if (backToTypesBtn) {
-    backToTypesBtn.addEventListener('click', () => {
-      document.getElementById('dbConnectionForm').classList.add('hidden');
-      document.querySelector('.database-types').style.display = 'grid';
-      document.getElementById('connectDatabase').disabled = true;
-    });
-  }
-
-  // Connect Database Button
-  const connectDatabase = document.getElementById('connectDatabase');
-  if (connectDatabase) {
-    connectDatabase.addEventListener('click', () => connectToDatabaseAndImport());
-  }
-}
-
-// ============================================
-// Scene 1.5: Universe Initialization
-// ============================================
-
-function startUniverseInitialization() {
-  showScene('init');
-  
-  const titleElement = document.getElementById('universeTitleInit');
-  if (titleElement) {
-    titleElement.textContent = `[${state.universeName}]`;
-  }
-
-  const tasks = [
-    { element: 0, duration: 800, progress: 33 },
-    { element: 1, duration: 1000, progress: 66 },
-    { element: 2, duration: 1200, progress: 100 }
-  ];
-
-  let currentTask = 0;
-  
-  function runNextTask() {
-    if (currentTask >= tasks.length) {
-      setTimeout(() => {
-        showIngestionScene();
-      }, 500);
-      return;
-    }
-
-    const task = tasks[currentTask];
-    const taskElements = document.querySelectorAll('#initTaskList .task-item');
-    
-    if (taskElements[task.element]) {
-      taskElements[task.element].classList.remove('pending');
-      taskElements[task.element].classList.add('in-progress');
-    }
-
-    // Update progress bar
-    document.getElementById('initProgress').style.width = task.progress + '%';
-    document.getElementById('initProgressText').textContent = task.progress + '%';
-
-    setTimeout(() => {
-      if (taskElements[task.element]) {
-        taskElements[task.element].classList.remove('in-progress');
-        taskElements[task.element].classList.add('completed');
-      }
-      
-      currentTask++;
-      runNextTask();
-    }, task.duration);
-  }
-
-  setTimeout(() => runNextTask(), 500);
-}
-
-// ============================================
-// Scene 2: Data Ingestion (Full Screen Universe)
-// ============================================
-
-function showIngestionScene() {
-  showScene('ingestion');
-  
-  // Update nav
-  document.getElementById('universeNameIngestion').textContent = state.universeName;
-
-  // Initialize SVG gradients
-  initializeSVGGradientsIngestion();
-
-  // Don't show any messages initially - just show planet and action buttons
-  // Messages will appear after user clicks an action button
-}
-
-// ============================================
-// File Upload (Direct from Zone)
-// ============================================
-
-function handleFilesSelected(files) {
-  if (files.length === 0) return;
-  
-  // Hide input zones
-  const inputZones = document.getElementById('dataInputZones');
-  if (inputZones) {
-    inputZones.classList.add('hidden');
-  }
-  
-  // Add files to state
-  state.dataSources = [];
-  Array.from(files).forEach(file => {
-    state.dataSources.push({
-      name: file.name,
-      size: file.size,
-      type: file.type,
-      rows: Math.floor(Math.random() * 100000) + 10000,
-      columns: Math.floor(Math.random() * 20) + 5
-    });
-  });
-  
-  // Show uploaded files message
-  const fileList = state.dataSources.map(f => `• ${f.name} (${formatFileSize(f.size)})`).join('\n');
-  addAIMessageBottom(
-    `✓ Received ${files.length} file(s):\n\n${fileList}\n\nReady to process.`
-  );
-  
-  // Show process button
-  showActionButtons([
-    { label: '✓ Process Files', primary: true, action: () => startDataCleaningOnUniverse() },
-    { label: 'Add More Files', primary: false, action: () => document.getElementById('fileInputHidden').click() },
-    { label: 'Cancel', primary: false, action: () => resetToInitialState() }
-  ]);
-}
-
-// ============================================
-// Database Quick Connect (Direct from Zone)
-// ============================================
-
-function connectDatabaseQuick(dbType) {
-  // Hide input zones
-  const inputZones = document.getElementById('dataInputZones');
-  if (inputZones) {
-    inputZones.classList.add('hidden');
-  }
-  
-  // DB name mapping
-  const dbNames = {
-    'mysql': 'MySQL',
-    'postgresql': 'PostgreSQL',
-    'mongodb': 'MongoDB',
-    'snowflake': 'Snowflake',
-    'redis': 'Redis',
-    'bigquery': 'BigQuery',
-    'redshift': 'Redshift',
-    'oracle': 'Oracle'
-  };
-  
-  const dbName = dbNames[dbType] || dbType;
-  
-  // Show connecting message
-  addAIMessageBottom(`🔌 Connecting to ${dbName}...`);
-  
-  setTimeout(() => {
-    addAIMessageBottom(
-      `✓ Connected to ${dbName}!\n\n` +
-      `📊 Scanning schema...\n\n` +
-      `Found 4 tables:\n` +
-      `• users_table (189K rows)\n` +
-      `• orders_table (35K rows)\n` +
-      `• products_table (12K rows)\n` +
-      `• sessions_table (445K rows)`
-    );
-    
-    // Simulate data sources
-    state.dataSources = [
-      { name: 'users_table', size: 3200000, rows: 189432, columns: 15 },
-      { name: 'orders_table', size: 1850000, rows: 34821, columns: 22 },
-      { name: 'products_table', size: 890000, rows: 12456, columns: 18 },
-      { name: 'sessions_table', size: 5600000, rows: 445230, columns: 10 }
-    ];
-    
-    // Show import button
-    showActionButtons([
-      { label: '✓ Import All Tables', primary: true, action: () => startDataCleaningOnUniverse() },
-      { label: 'Select Specific Tables', primary: false, action: () => {
-        addAIMessageBottom('Select which tables to import:');
-        showActionButtons([
-          { label: '✓ users_table', primary: false, action: () => {} },
-          { label: '✓ orders_table', primary: false, action: () => {} },
-          { label: 'Continue', primary: true, action: () => startDataCleaningOnUniverse() }
-        ]);
-      }}
-    ]);
-  }, 1800);
-}
-
-// ============================================
-// Action Buttons Management
-// ============================================
-
-function showActionButtons(buttons) {
-  const container = document.getElementById('actionButtonsBar');
-  container.innerHTML = '';
-  
-  buttons.forEach(btn => {
-    const button = document.createElement('button');
-    button.className = btn.primary ? 'action-btn' : 'action-btn secondary';
-    button.textContent = btn.label;
-    button.addEventListener('click', btn.action);
-    container.appendChild(button);
-  });
-}
-
-function clearActionButtons() {
-  const container = document.getElementById('actionButtonsBar');
-  container.innerHTML = '';
-}
-
-function resetToInitialState() {
-  clearActionButtons();
-  const inputZones = document.getElementById('dataInputZones');
-  if (inputZones) {
-    inputZones.classList.remove('hidden');
-  }
-  state.dataSources = [];
-  // Clear floating messages
-  document.getElementById('floatingMessages').innerHTML = '';
-}
-
-
-// Initialize SVG Gradients for Ingestion Scene
-function initializeSVGGradientsIngestion() {
-  const svg = document.getElementById('ingestionSvg');
-  const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
-  
-  // Core gradient
-  const coreGradient = document.createElementNS('http://www.w3.org/2000/svg', 'radialGradient');
-  coreGradient.setAttribute('id', 'coreGradientIngestion');
-  coreGradient.innerHTML = `
-    <stop offset="0%" style="stop-color:#4DD4E8;stop-opacity:1" />
-    <stop offset="100%" style="stop-color:#1B4D89;stop-opacity:1" />
-  `;
-  defs.appendChild(coreGradient);
-  
-  svg.insertBefore(defs, svg.firstChild);
-}
-
-// ============================================
-// Chat Functions - Bottom Panel (Ingestion Scene)
-// ============================================
-
-function sendChatMessageBottom() {
-  const input = document.getElementById('chatInputBottom');
-  const message = input.value.trim();
-  
-  if (!message) return;
-  
-  // Add user message
-  addUserMessageBottom(message);
-  input.value = '';
-  
-  // Handle commands
-  setTimeout(() => {
-    handleUserCommandBottom(message);
-  }, 500);
-}
-
-function addUserMessageBottom(text) {
-  const messagesContainer = document.getElementById('floatingMessages');
-  const messageDiv = document.createElement('div');
-  
-  const time = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-  
-  messageDiv.className = `floating-message user`;
-  
-  messageDiv.innerHTML = `
-    <button class="floating-message-close" onclick="this.parentElement.remove()">×</button>
-    <div class="floating-message-header">
-      <span class="floating-message-icon">👤</span>
-      <span>Sarah</span>
-      <span class="floating-message-time">${time}</span>
-    </div>
-    <div class="floating-message-content">${text}</div>
-  `;
-  
-  messagesContainer.appendChild(messageDiv);
-  
-  state.chatHistory.push({ role: 'user', content: text, time });
-  
-  // Update message count
-  updateMessageCount();
-  
-  // Auto-scroll to bottom
-  setTimeout(() => {
-    messagesContainer.scrollTop = messagesContainer.scrollHeight;
-  }, 100);
-}
-
-function addAIMessageBottom(text, options = {}) {
-  if (!options.noTyping) {
-    // Show typing indicator briefly
-    showTypingIndicator();
-    
-    setTimeout(() => {
-      hideTypingIndicator();
-      addAIMessageBottomContent(text, options);
-    }, 1000);
-  } else {
-    addAIMessageBottomContent(text, options);
-  }
-}
-
-function showTypingIndicator() {
-  const messagesContainer = document.getElementById('floatingMessages');
-  
-  // Remove existing typing indicator
-  const existingTyping = document.getElementById('typingIndicator');
-  if (existingTyping) existingTyping.remove();
-  
-  const typingDiv = document.createElement('div');
-  typingDiv.id = 'typingIndicator';
-  typingDiv.className = 'floating-message ai';
-  typingDiv.style.padding = '15px 20px';
-  typingDiv.innerHTML = `
-    <div class="typing-indicator">
-      <span></span><span></span><span></span>
-    </div>
-  `;
-  
-  messagesContainer.appendChild(typingDiv);
-  
-  // Auto-scroll to bottom
-  setTimeout(() => {
-    messagesContainer.scrollTop = messagesContainer.scrollHeight;
-  }, 50);
-}
-
-function hideTypingIndicator() {
-  const typingDiv = document.getElementById('typingIndicator');
-  if (typingDiv) typingDiv.remove();
-}
-
-function addAIMessageBottomContent(text, options = {}) {
-  const messagesContainer = document.getElementById('floatingMessages');
-  const messageDiv = document.createElement('div');
-  
-  const time = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-  
-  messageDiv.className = `floating-message ai`;
-  
-  messageDiv.innerHTML = `
-    <button class="floating-message-close" onclick="this.parentElement.remove()">×</button>
-    <div class="floating-message-header">
-      <span class="floating-message-icon">🤖</span>
-      <span>AI Assistant</span>
-      <span class="floating-message-time">${time}</span>
-    </div>
-    <div class="floating-message-content">${text.replace(/\n/g, '<br>')}</div>
-  `;
-  
-  messagesContainer.appendChild(messageDiv);
-  
-  state.chatHistory.push({ role: 'assistant', content: text, time });
-  
-  // Update message count
-  updateMessageCount();
-  
-  // Auto-scroll to bottom
-  setTimeout(() => {
-    messagesContainer.scrollTop = messagesContainer.scrollHeight;
-  }, 100);
-}
-
-// ============================================
-// Message Management
-// ============================================
-
-function updateMessageCount() {
-  const countElement = document.getElementById('messageCount');
-  if (countElement) {
-    countElement.textContent = state.chatHistory.length;
-  }
-}
-
-function toggleMessageHistory() {
-  const panel = document.getElementById('messageHistoryPanel');
-  
-  if (panel.classList.contains('hidden')) {
-    // Show panel and populate with history
-    populateMessageHistory();
-    panel.classList.remove('hidden');
-  } else {
-    // Hide panel
-    panel.classList.add('hidden');
-  }
-}
-
-function populateMessageHistory() {
-  const content = document.getElementById('historyContent');
-  
-  if (state.chatHistory.length === 0) {
-    content.innerHTML = '<p class="empty-history">No messages yet</p>';
-    return;
-  }
-  
-  // Render all messages in chronological order
-  content.innerHTML = state.chatHistory.map(msg => `
-    <div class="history-message ${msg.role}">
-      <div class="history-message-header">
-        <span>${msg.role === 'user' ? '👤 Sarah' : '🤖 AI Assistant'}</span>
-        <span>${msg.time}</span>
+function renderCardContent(card) {
+  // Document
+  if (card.cardType === 'document') {
+    return `
+      <div class="card-header">
+        <h4 class="card-title">${card.title}</h4>
       </div>
-      <div class="history-message-content">${msg.content.replace(/\n/g, '<br>')}</div>
-    </div>
-  `).join('');
-  
-  // Scroll to bottom
-  content.scrollTop = content.scrollHeight;
-}
-
-
-function handleUserCommandBottom(message) {
-  const lowerMessage = message.toLowerCase();
-  
-  if (lowerMessage.includes('upload')) {
-    showModal('uploadModal');
-    addAIMessageBottom('Great! Please upload your data files.');
-  } else if (lowerMessage.includes('connect')) {
-    addAIMessageBottom('Database connection feature coming soon! For now, please use file upload.');
-  } else if (lowerMessage.includes('demo') || lowerMessage.includes('example')) {
-    loadDemoData();
-  } else {
-    addAIMessageBottom(`I understand you're asking about: "${message}"\n\nTo get started, please upload your data first. Once we have your data, I can help analyze it and answer your questions!`);
+      <div class="card-document">
+        <div class="doc-icon">📄</div>
+        <p class="doc-text">${card.content.text}</p>
+      </div>
+    `;
   }
-}
-
-function updateSuggestionsBottom(suggestions) {
-  const container = document.getElementById('suggestionsFloating');
-  container.innerHTML = '';
   
-  suggestions.forEach(suggestion => {
-    const chip = document.createElement('div');
-    chip.className = 'suggestion-chip';
-    chip.textContent = suggestion.label;
-    chip.addEventListener('click', suggestion.action);
-    container.appendChild(chip);
-  });
-}
-
-// ============================================
-// File Upload (Overlay Version)
-// ============================================
-
-function handleFileUploadOverlay(files) {
-  const uploadedFilesContainer = document.getElementById('uploadedFilesOverlay');
-  const confirmBtn = document.getElementById('confirmUploadOverlay');
-  
-  Array.from(files).forEach(file => {
-    // Add to state
-    state.dataSources.push({
-      name: file.name,
-      size: file.size,
-      type: file.type,
-      rows: Math.floor(Math.random() * 100000) + 10000,
-      columns: Math.floor(Math.random() * 20) + 5
-    });
-    
-    // Create file item
-    const fileItem = document.createElement('div');
-    fileItem.className = 'file-item';
-    fileItem.innerHTML = `
-      <div class="file-info">
-        <span>📄</span>
-        <div>
-          <div class="file-name">${file.name}</div>
-          <div class="file-size">${formatFileSize(file.size)}</div>
+  // Media
+  if (card.cardType === 'media') {
+    return `
+      <div class="card-header">
+        <h4 class="card-title">${card.title}</h4>
+        <span class="card-badge">${card.badge}</span>
+      </div>
+      <div class="card-media">
+        <div class="media-grid">
+          ${card.content.images.map(img => `
+            <div class="media-item">
+              <img src="${img.url}" alt="${img.name}" class="media-thumb-img"/>
+              <div class="media-name">${img.name}</div>
+            </div>
+          `).join('')}
         </div>
       </div>
     `;
-    uploadedFilesContainer.appendChild(fileItem);
-  });
-  
-  if (state.dataSources.length > 0) {
-    confirmBtn.disabled = false;
   }
-}
-
-function formatFileSize(bytes) {
-  if (bytes < 1024) return bytes + ' B';
-  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
-  return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+  
+  // Checklist
+  if (card.cardType === 'checklist') {
+    return `
+      <div class="card-header">
+        <h4 class="card-title">${card.title}</h4>
+        <span class="card-badge">${card.badge}</span>
+      </div>
+      <div class="card-checklist">
+        ${card.content.items.map(item => `
+          <div class="checklist-item ${item.done ? 'done' : ''}">
+            <span class="checkbox">${item.done ? '✓' : '○'}</span>
+            <span class="item-text">${item.text}</span>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  }
+  
+  // KPI
+  if (card.cardType === 'kpi') {
+    return `
+      <div class="card-header">
+        <h4 class="card-title">${card.title}</h4>
+        <span class="card-badge">${card.badge}</span>
+      </div>
+      <div class="card-kpi">
+        ${card.content.metrics.map(m => `
+          <div class="kpi-item">
+            <div class="kpi-label">${m.label}</div>
+            <div class="kpi-value">${m.value}</div>
+            <div class="kpi-change ${m.trend}">${m.trend === 'up' ? '↗' : '↘'} ${m.change}</div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  }
+  
+  // 默认：Data统计
+  const statsHtml = Object.entries(card.stats || {}).map(([label, value]) => `
+    <div class="stat-item">
+      <div class="stat-label">${label}</div>
+      <div class="stat-value">${value}</div>
+    </div>
+  `).join('');
+  
+  return `
+    <div class="card-header">
+      <h4 class="card-title">${card.title}</h4>
+      <span class="card-badge">${card.badge}</span>
+    </div>
+    <div class="card-meta">
+      <span class="card-type">${card.type}</span>
+    </div>
+    <div class="card-stats">${statsHtml}</div>
+  `;
 }
 
 // ============================================
-// Data Cleaning - Display on Universe
+// 渲染卡片
 // ============================================
 
-function startDataCleaningOnUniverse() {
-  // Clear action buttons
-  clearActionButtons();
+function renderCards() {
+  const svgGroup = document.getElementById('cardsGroup');
+  svgGroup.innerHTML = '';
   
-  // Show energy injection animation
-  animateEnergyInjection();
-  
-  // Activate core node
-  setTimeout(() => {
-    const coreCircle = document.querySelector('#coreNodeIngestion circle');
-    if (coreCircle) {
-      coreCircle.classList.remove('empty');
-      coreCircle.setAttribute('fill', 'url(#coreGradientIngestion)');
-      coreCircle.style.animation = 'pulse-activate 0.8s ease-out';
-    }
-  }, 800);
-
-  // Show simple message
-  addAIMessageBottom(`⚡ Injecting ${state.dataSources.length} data stream(s) into core...`);
-
-  // Create pending planet nodes around core
-  setTimeout(() => {
-    state.dataSources.forEach((ds, index) => {
-      setTimeout(() => {
-        createPendingPlanetIngestion(index);
-      }, index * 200);
-    });
-  }, 1200);
-
-  // Start cleaning process (progress shown on Core)
-  setTimeout(() => {
-    runCleaningWithMessages();
-  }, 2000);
-}
-
-function animateEnergyInjection() {
-  // Create temporary energy particles flowing to core
-  const svg = document.getElementById('ingestionSvg');
-  
-  for (let i = 0; i < 20; i++) {
-    setTimeout(() => {
-      const particle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-      particle.setAttribute('r', '3');
-      particle.setAttribute('fill', 'var(--energy-cyan)');
-      particle.setAttribute('opacity', '0.8');
-      
-      // Random start position (from edges)
-      const side = Math.random() > 0.5 ? 'left' : 'right';
-      const startX = side === 'left' ? 200 : 1400;
-      const startY = 450 + (Math.random() - 0.5) * 200;
-      
-      particle.setAttribute('cx', startX);
-      particle.setAttribute('cy', startY);
-      
-      svg.appendChild(particle);
-      
-      // Animate to core
-      let progress = 0;
-      const animate = setInterval(() => {
-        progress += 0.02;
-        if (progress >= 1) {
-          clearInterval(animate);
-          particle.remove();
-        } else {
-          const currentX = startX + (800 - startX) * progress;
-          const currentY = startY + (450 - startY) * progress;
-          particle.setAttribute('cx', currentX);
-          particle.setAttribute('cy', currentY);
-          particle.setAttribute('opacity', 0.8 * (1 - progress));
-        }
-      }, 16);
-    }, i * 100);
-  }
-}
-
-function createPendingPlanetIngestion(index) {
-  const svg = document.getElementById('ingestionSvg');
-  const group = document.getElementById('planetsGroupIngestion');
-  
-  const angles = [0, 120, 240]; // 3 planets around core (or 4 if database)
-  const angle = angles[index % 3] * (Math.PI / 180);
-  const radius = 220;
-  const cx = 800 + Math.cos(angle) * radius;
-  const cy = 450 + Math.sin(angle) * radius;
-  
-  const planet = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-  planet.setAttribute('class', 'planet pending');
-  planet.setAttribute('data-index', index);
-  
-  // Circle - half transparent
-  const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-  circle.setAttribute('cx', cx);
-  circle.setAttribute('cy', cy);
-  circle.setAttribute('r', 30);
-  circle.setAttribute('fill', 'rgba(232, 230, 217, 0.2)');
-  circle.setAttribute('stroke', 'rgba(232, 230, 217, 0.4)');
-  circle.setAttribute('stroke-width', '2');
-  circle.setAttribute('stroke-dasharray', '5, 5');
-  
-  planet.appendChild(circle);
-  group.appendChild(planet);
-  
-  // Create connection line
-  createConnectionLineIngestion(800, 450, cx, cy, index);
-}
-
-function createConnectionLineIngestion(x1, y1, x2, y2, index) {
-  const group = document.getElementById('connectionsGroupIngestion');
-  
-  const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-  line.setAttribute('x1', x1);
-  line.setAttribute('y1', y1);
-  line.setAttribute('x2', x2);
-  line.setAttribute('y2', y2);
-  line.setAttribute('class', 'connection-line');
-  line.setAttribute('data-index', index);
-  line.setAttribute('stroke-opacity', '0.2');
-  
-  group.appendChild(line);
-}
-
-// ============================================
-// Data Cleaning with Messages (No Modal)
-// ============================================
-
-function runCleaningWithMessages() {
-  const tasks = [
-    'Schema analysis',
-    'Missing values',
-    'Outlier detection',
-    'Type inference',
-    'Duplicate check',
-    'Standardization'
-  ];
-  
-  // Show progress on Core planet (not in message)
-  const progressText = document.getElementById('coreProgressText');
-  const progressRing = document.getElementById('progressRingFill');
-  
-  if (progressText) {
-    progressText.setAttribute('opacity', '1');
-  }
-  
-  let progress = 0;
-  const circumference = 2 * Math.PI * 100; // r=100
-  
-  function updateProgress() {
-    if (progress >= tasks.length) {
-      // Cleaning complete
-      if (progressText) {
-        progressText.textContent = '100%';
-      }
-      if (progressRing) {
-        progressRing.setAttribute('stroke-dashoffset', '0');
-      }
-      
-      setTimeout(() => {
-        // Hide progress
-        if (progressText) {
-          progressText.setAttribute('opacity', '0');
-        }
-        
-        activatePlanetsIngestion();
-        setTimeout(() => {
-          showBusinessQA();
-        }, 1000);
-      }, 800);
-      return;
-    }
-    
-    progress++;
-    const percentage = Math.round((progress / tasks.length) * 100);
-    
-    // Update progress ring on Core
-    if (progressText) {
-      progressText.textContent = percentage + '%';
-    }
-    if (progressRing) {
-      const offset = circumference - (circumference * percentage / 100);
-      progressRing.setAttribute('stroke-dashoffset', offset);
-    }
-    
-    setTimeout(updateProgress, Math.random() * 400 + 300);
-  }
-  
-  setTimeout(updateProgress, 800);
-}
-
-// ============================================
-// Business QA - Phase by Phase
-// ============================================
-
-function showBusinessQA() {
-  addAIMessageBottom(`✅ Data cleaning complete!`);
-  
-  setTimeout(() => {
-    startBusinessQAPhase1();
-  }, 800);
-}
-
-// Phase 1: 业务理解（谁/做啥/为何）
-function startBusinessQAPhase1() {
-  addAIMessageBottom(
-    `📋 **Phase 1/3: Business Context**\n\n` +
-    `Based on your data, I believe:\n\n` +
-    `**Who you are:** [需确认]\n` +
-    `E-commerce retail company\n\n` +
-    `**What you do:** [需确认]\n` +
-    `Sell consumer products online (B2C)\n\n` +
-    `**Why analyze:** [需确认]\n` +
-    `Understand customer behavior to increase sales`
-  );
-  
-  showActionButtons([
-    { label: '✓ Correct, Continue', primary: true, action: () => {
-      clearActionButtons();
-      addUserMessageBottom("Yes, that's correct!");
-      state.businessContext = { phase1: 'confirmed' };
-      setTimeout(() => startBusinessQAPhase2(), 1000);
-    }},
-    { label: '✎ No, Let me clarify', primary: false, action: () => startClarificationFlow() },
-    { label: 'Skip All', primary: false, action: () => skipToDataCheck() }
-  ]);
-}
-
-// Phase 2: 应用场景（要回答什么/怎么用）
-function startBusinessQAPhase2() {
-  addAIMessageBottom(
-    `📋 **Phase 2/3: Application Goals**\n\n` +
-    `What questions do you want to answer:\n\n` +
-    `**Primary goal:** [需确认]\n` +
-    `User growth & retention analysis\n\n` +
-    `**Key questions:** [需确认]\n` +
-    `• Why do users leave?\n` +
-    `• Which channels retain best?\n` +
-    `• How to improve repeat purchase?\n\n` +
-    `**Usage:** [需确认]\n` +
-    `Weekly review + campaign optimization`
-  );
-  
-  showActionButtons([
-    { label: '✓ Correct, Continue', primary: true, action: () => {
-      clearActionButtons();
-      addUserMessageBottom("Yes, exactly what I need!");
-      state.businessContext.phase2 = 'confirmed';
-      setTimeout(() => startBusinessQAPhase3(), 1000);
-    }},
-    { label: '✎ Adjust Goals', primary: false, action: () => {
-      clearActionButtons();
-      addAIMessageBottom(`What would you like to adjust? Please tell me your specific goals.`);
-      // Can use input box to clarify
-    }}
-  ]);
-}
-
-// Phase 3: 数据细节（粒度/键/时态/口径）
-function startBusinessQAPhase3() {
-  addAIMessageBottom(
-    `📋 **Phase 3/3: Data Structure**\n\n` +
-    `Data entity mapping:\n\n` +
-    `**Time granularity:** [需确认]\n` +
-    `Daily level (can aggregate to weekly/monthly)\n\n` +
-    `**Primary keys:** [需确认]\n` +
-    `• User: user_id\n` +
-    `• Order: order_id\n` +
-    `• Event: event_id\n\n` +
-    `**Time fields:** [需确认]\n` +
-    `created_at, updated_at (UTC timezone)\n\n` +
-    `**Metrics caliber:** [需确认]\n` +
-    `Revenue: USD, Users: Unique count`
-  );
-  
-  showActionButtons([
-    { label: '✓ All Correct', primary: true, action: () => {
-      clearActionButtons();
-      addUserMessageBottom("All confirmed!");
-      state.businessContext.phase3 = 'confirmed';
-      setTimeout(() => checkDataSaturation(), 1000);
-    }},
-    { label: '✎ Adjust Mapping', primary: false, action: () => {
-      clearActionButtons();
-      addAIMessageBottom(`Which part needs adjustment? (Time granularity / Keys / Metrics)`);
-    }}
-  ]);
-}
-
-// Clarification Flow
-function startClarificationFlow() {
-  clearActionButtons();
-  
-  addAIMessageBottom(
-    `Let me understand better. Please tell me:\n\n` +
-    `1️⃣ **Your Business:**\n` +
-    `   What industry? What do you sell?\n\n` +
-    `2️⃣ **Your Challenge:**\n` +
-    `   What problem are you trying to solve?\n\n` +
-    `3️⃣ **Your Goal:**\n` +
-    `   What decision will this data help you make?`
-  );
-  
-  // Simulate user clarifying (for demo)
-  setTimeout(() => {
-    addUserMessageBottom(
-      "We're a subscription box service. Our churn is too high. " +
-      "I want to predict which customers will cancel next month."
-    );
-    
-    setTimeout(() => {
-      // After clarification, re-analyze
-      addAIMessageBottom(
-        `Got it! Re-analyzing your data for:\n\n` +
-        `✓ Business: Subscription box service\n` +
-        `✓ Challenge: High churn rate\n` +
-        `✓ Goal: Churn prediction model\n\n` +
-        `Checking data requirements...`
-      );
-      
-      setTimeout(() => {
-        checkDataSaturationLow();
-      }, 1500);
-    }, 1200);
-  }, 3000);
-}
-
-// Low saturation after clarification
-function checkDataSaturationLow() {
-  const saturation = 35; // Very low
-  state.saturation = saturation;
-  
-  // Display saturation on Core planet
-  const saturationText = document.getElementById('coreSaturationText');
-  if (saturationText) {
-    saturationText.textContent = `Saturation: ${saturation}%`;
-    saturationText.setAttribute('opacity', '1');
-    saturationText.classList.add('low');
-  }
-  
-  // Show critical warning
-  addAIMessageBottom(
-    `🚨 **Critical: Data Saturation Too Low (${saturation}%)**\n\n` +
-    `For churn prediction, you need:\n\n` +
-    `**Missing (Critical):**\n` +
-    `• Subscription events (start/pause/cancel)\n` +
-    `• Payment history\n` +
-    `• Customer support interactions\n` +
-    `• Product usage/engagement data\n\n` +
-    `**Impact:** Without these, prediction accuracy <40%\n\n` +
-    `Please add more data to continue.`
-  );
-  
-  showActionButtons([
-    { label: '📤 Add More Data', primary: true, action: () => {
-      clearActionButtons();
-      hideSaturationDisplay();
-      addSecondRoundData();
-    }},
-    { label: 'Continue Anyway (Not Recommended)', primary: false, action: () => {
-      clearActionButtons();
-      hideSaturationDisplay();
-      addAIMessageBottom(`⚠ Proceeding with low data quality. Results may be unreliable.`);
-      setTimeout(() => completeUniverseConstruction(), 1500);
-    }}
-  ]);
-}
-
-// Second round: Add more data
-function addSecondRoundData() {
-  hideSaturationDisplay();
-  
-  // Show input zones again
-  const inputZones = document.getElementById('dataInputZones');
-  if (inputZones) {
-    inputZones.classList.remove('hidden');
-  }
-  
-  addAIMessageBottom(`Please add the missing data:\n• Subscription events\n• Payment history\n• Support tickets`);
-  
-  // Simulate user adding more data (for demo)
-  setTimeout(() => {
-    // Auto-add files for demo
-    state.dataSources.push(
-      { name: 'subscription_events.csv', size: 1200000, rows: 45678, columns: 10 },
-      { name: 'payment_history.csv', size: 890000, rows: 34521, columns: 8 }
-    );
-    
-    const inputZones2 = document.getElementById('dataInputZones');
-    if (inputZones2) {
-      inputZones2.classList.add('hidden');
-    }
-    
-    addAIMessageBottom(
-      `✓ Received additional data:\n` +
-      `• subscription_events.csv\n` +
-      `• payment_history.csv\n\n` +
-      `Processing...`
-    );
-    
-    showActionButtons([
-      { label: '✓ Process New Data', primary: true, action: () => {
-        clearActionButtons();
-        startSecondRoundCleaning();
-      }}
-    ]);
-  }, 5000);
-}
-
-// Second round cleaning
-function startSecondRoundCleaning() {
-  // Show progress on core
-  const progressText = document.getElementById('coreProgressText');
-  const progressRing = document.getElementById('progressRingFill');
-  
-  if (progressText) {
-    progressText.setAttribute('opacity', '1');
-  }
-  
-  addAIMessageBottom(`Processing additional data...`);
-  
-  let progress = 0;
-  const circumference = 2 * Math.PI * 100;
-  
-  const interval = setInterval(() => {
-    progress += 20;
-    if (progress > 100) {
-      progress = 100;
-      clearInterval(interval);
-      
-      // Complete
-      if (progressText) {
-        progressText.textContent = '100%';
-      }
-      if (progressRing) {
-        progressRing.setAttribute('stroke-dashoffset', '0');
-      }
-      
-      setTimeout(() => {
-        if (progressText) {
-          progressText.setAttribute('opacity', '0');
-        }
-        
-        // Create new planets for new data
-        createPendingPlanetIngestion(3);
-        createPendingPlanetIngestion(4);
-        
-        setTimeout(() => {
-          activatePlanetsIngestion();
-          recheckDataSaturation();
-        }, 1000);
-      }, 800);
-    } else {
-      if (progressText) {
-        progressText.textContent = progress + '%';
-      }
-      if (progressRing) {
-        const offset = circumference - (circumference * progress / 100);
-        progressRing.setAttribute('stroke-dashoffset', offset);
-      }
-    }
-  }, 400);
-}
-
-// Recheck saturation after adding data
-function recheckDataSaturation() {
-  const newSaturation = 78; // Improved but still borderline
-  state.saturation = newSaturation;
-  
-  // Update saturation on Core
-  const saturationText = document.getElementById('coreSaturationText');
-  if (saturationText) {
-    saturationText.textContent = `Saturation: ${newSaturation}%`;
-    saturationText.setAttribute('opacity', '1');
-    saturationText.classList.remove('low');
-    saturationText.classList.add('medium');
-  }
-  
-  addAIMessageBottom(
-    `✅ **Saturation improved: ${newSaturation}%**\n\n` +
-    `Much better! You now have:\n` +
-    `✓ User behavior data\n` +
-    `✓ Order history\n` +
-    `✓ Subscription events\n` +
-    `✓ Payment data\n\n` +
-    `This is sufficient for churn prediction analysis.`
-  );
-  
-  showActionButtons([
-    { label: '🚀 Build Universe', primary: true, action: () => {
-      clearActionButtons();
-      hideSaturationDisplay();
-      completeUniverseConstruction();
-    }}
-  ]);
-}
-
-function skipToDataCheck() {
-  clearActionButtons();
-  addUserMessageBottom("Skip QA, just process the data");
-  setTimeout(() => {
-    checkDataSaturation();
-  }, 800);
-}
-
-function confirmBusinessQA() {
-  clearActionButtons();
-  addUserMessageBottom("Yes, that's correct!");
-  
-  state.businessContext = {
-    type: 'E-commerce Platform - B2C Retail',
-    goal: 'User Growth & Retention Analysis'
+  const typeColors = {
+    'Core': 'core-color',
+    'Data': 'blue-tint',
+    'Document': 'yellow-tint',
+    'Media': 'pink-tint',
+    'Checklist': 'green-tint',
+    'KPI': 'purple-tint'
   };
   
-  setTimeout(() => {
-    checkDataSaturation();
-  }, 800);
-}
-
-function clarifyBusinessQA() {
-  clearActionButtons();
-  addAIMessageBottom(`Please tell me:\n1. What type of business are you in?\n2. What do you want to achieve with this data?`);
-  
-  // User can type in input box for conversation
-  // For demo, auto-proceed after timeout
-  setTimeout(() => {
-    addUserMessageBottom("I run an e-commerce store and want to improve retention");
-    setTimeout(() => {
-      addAIMessageBottom(`Got it! Updating business context...\n\nBusiness: E-commerce\nGoal: Improve retention`);
-      setTimeout(() => {
-        checkDataSaturation();
-      }, 1500);
-    }, 1000);
-  }, 3000);
-}
-
-function runCleaningProcessOverlay() {
-  const statusText = document.getElementById('cleaningStatusOverlay');
-  const progressBar = document.getElementById('cleaningProgressOverlay');
-  const progressText = document.getElementById('cleaningProgressTextOverlay');
-  
-  const taskNames = [
-    'Schema analysis',
-    'Missing value detection',
-    'Outlier identification',
-    'Type inference',
-    'Duplicate check',
-    'Standardization'
-  ];
-  
-  let currentTask = 0;
-  const totalTasks = taskNames.length;
-  
-  function runTask() {
-    if (currentTask >= totalTasks) {
-      setTimeout(() => {
-        hideOverlay('cleaningOverlay');
-        
-        // Activate planets on universe
-        activatePlanetsIngestion();
-        
-        // Show business QA
-        setTimeout(() => {
-          showBusinessUnderstandingOverlay();
-        }, 1500);
-      }, 500);
-      return;
-    }
+  cards.forEach(card => {
+    const colorClass = typeColors[card.type] || 'blue-tint';
     
-    // Update status
-    statusText.textContent = taskNames[currentTask] + '...';
+    const foreignObject = document.createElementNS('http://www.w3.org/2000/svg', 'foreignObject');
+    foreignObject.setAttribute('x', card.x);
+    foreignObject.setAttribute('y', card.y);
+    foreignObject.setAttribute('width', card.width);
+    foreignObject.setAttribute('height', card.height);
+    foreignObject.id = `card-${card.id}`;
     
-    // Update progress
-    const progress = Math.round(((currentTask + 1) / totalTasks) * 100);
-    progressBar.style.width = progress + '%';
-    progressText.textContent = progress + '%';
+    const content = renderCardContent(card);
     
-    currentTask++;
-    setTimeout(runTask, Math.random() * 500 + 300);
-  }
-  
-  setTimeout(() => runTask(), 500);
-}
-
-function runCleaningProcess() {
-  const tasks = document.querySelectorAll('#cleaningTasks .task-item');
-  const statusText = document.getElementById('cleaningStatus');
-  const progressBar = document.getElementById('cleaningProgress');
-  const progressText = document.getElementById('cleaningProgressText');
-  
-  const taskNames = [
-    'Schema analysis',
-    'Missing value detection',
-    'Outlier identification',
-    'Type inference',
-    'Duplicate check',
-    'Standardization'
-  ];
-  
-  let currentTask = 0;
-  const totalTasks = tasks.length;
-  
-  function runTask() {
-    if (currentTask >= totalTasks) {
-      setTimeout(() => {
-        hideModal('cleaningModal');
-        
-        // Activate planets on universe
-        activatePlanetsIngestion();
-        
-        // Show cleaning results
-        showCleaningResults();
-      }, 500);
-      return;
-    }
+    const htmlContent = `
+      <div class="data-card ${colorClass} ${card.isCore ? 'core' : ''}" 
+           xmlns="http://www.w3.org/1999/xhtml"
+           style="${card.isCore ? 'background: #5A95A8 !important;' : 'background: #FFFFFF !important;'}"
+           onclick="selectCard('${card.id}')">
+        <div class="card-actions">
+          <button class="card-action-btn edit-btn" onclick="event.stopPropagation(); editCard('${card.id}')">✎</button>
+          <button class="card-action-btn delete-btn" onclick="event.stopPropagation(); deleteCard('${card.id}')">×</button>
+        </div>
+        ${content}
+        <div class="card-expand-hint">Click to expand →</div>
+      </div>
+    `;
     
-    // Update status
-    statusText.textContent = `Current: ${taskNames[currentTask]}...`;
-    
-    // Mark as in progress
-    tasks[currentTask].classList.remove('pending');
-    tasks[currentTask].classList.add('in-progress');
-    
-    // Update progress
-    const progress = Math.round(((currentTask + 0.5) / totalTasks) * 100);
-    progressBar.style.width = progress + '%';
-    progressText.textContent = progress + '%';
-    
-    setTimeout(() => {
-      // Mark as completed
-      tasks[currentTask].classList.remove('in-progress');
-      tasks[currentTask].classList.add('completed');
-      
-      // Final progress for this task
-      const finalProgress = Math.round(((currentTask + 1) / totalTasks) * 100);
-      progressBar.style.width = finalProgress + '%';
-      progressText.textContent = finalProgress + '%';
-      
-      currentTask++;
-      setTimeout(runTask, 300);
-    }, Math.random() * 800 + 400);
-  }
-  
-  setTimeout(runTask, 500);
-}
-
-function activatePlanetsIngestion() {
-  const planets = document.querySelectorAll('#planetsGroupIngestion .planet');
-  const connections = document.querySelectorAll('#connectionsGroupIngestion .connection-line');
-  
-  planets.forEach((planet, index) => {
-    setTimeout(() => {
-      const circle = planet.querySelector('circle');
-      if (circle) {
-        circle.setAttribute('fill', 'rgba(110, 194, 135, 0.3)');
-        circle.setAttribute('stroke', '#6EC287');
-        circle.setAttribute('stroke-width', '2');
-        circle.setAttribute('stroke-dasharray', 'none');
-        circle.style.filter = 'drop-shadow(0 0 10px #6EC287)';
-      }
-      planet.classList.remove('pending');
-      planet.classList.add('active');
-      
-      // Activate connection
-      const connection = connections[index];
-      if (connection) {
-        connection.setAttribute('stroke-opacity', '0.6');
-        connection.classList.add('active');
-      }
-    }, index * 300);
+    foreignObject.innerHTML = htmlContent;
+    enableCardDragSVG(foreignObject, card);
+    svgGroup.appendChild(foreignObject);
   });
 }
 
-function showCleaningResults() {
-  addAIMessageBottom(
-    `✅ Auto-cleaning complete! (3.2s)\n\n` +
-    `📊 CLEANING SUMMARY:\n` +
-    `Total records: ${state.dataSources.reduce((sum, ds) => sum + ds.rows, 0).toLocaleString()} → ${(state.dataSources.reduce((sum, ds) => sum + ds.rows, 0) - 835).toLocaleString()} (99.6%)\n\n` +
-    `✓ Fixed: 234 type mismatches\n` +
-    `✓ Standardized: 12 date formats → ISO-8601\n` +
-    `✓ Unified: Currency fields → USD\n` +
-    `✓ Removed: 835 duplicate records\n` +
-    `✓ Normalized: Product categories (18 → 8)\n\n` +
-    `Now analyzing your business context...`
-  );
-  
-  setTimeout(() => {
-    showBusinessUnderstandingModal();
-  }, 2000);
-}
-
-// ============================================
-// Business Understanding QA (Overlay Version)
-// ============================================
-
-function showBusinessUnderstandingOverlay() {
-  showOverlay('qaOverlay');
-}
-
-// ============================================
-// Data Saturation Check (Display on Core)
-// ============================================
-
-function checkDataSaturation() {
-  // Calculate saturation (for demo, use 63%)
-  const saturation = 63;
-  state.saturation = saturation;
-  
-  // Display saturation on Core planet
-  const saturationText = document.getElementById('coreSaturationText');
-  if (saturationText) {
-    saturationText.textContent = `Saturation: ${saturation}%`;
-    saturationText.setAttribute('opacity', '1');
-    
-    // Set color based on level
-    if (saturation >= 80) {
-      saturationText.classList.add('high');
-    } else if (saturation >= 60) {
-      saturationText.classList.add('medium');
-    } else {
-      saturationText.classList.add('low');
-    }
-  }
-  
-  if (saturation < 80) {
-    // Show warning message with recommendations
-    addAIMessageBottom(
-      `⚠ Low data saturation detected.\n\n` +
-      `**Missing:**\n` +
-      `• Marketing attribution (+15%)\n` +
-      `• Product catalog (+12%)`
-    );
-    
-    showActionButtons([
-      { label: 'Continue Anyway', primary: true, action: () => {
-        clearActionButtons();
-        hideSaturationDisplay();
-        completeUniverseConstruction();
-      }},
-      { label: '📤 Add More Data', primary: false, action: () => {
-        clearActionButtons();
-        hideSaturationDisplay();
-        resetToInitialState();
-      }}
-    ]);
-  } else {
-    // Good saturation, proceed
-    setTimeout(() => {
-      hideSaturationDisplay();
-      completeUniverseConstruction();
-    }, 1500);
-  }
-}
-
-function hideSaturationDisplay() {
-  const saturationText = document.getElementById('coreSaturationText');
-  if (saturationText) {
-    saturationText.setAttribute('opacity', '0');
-  }
-}
-
-// ============================================
-// Complete Universe Construction
-// ============================================
-
-function completeUniverseConstruction() {
-  // Clear all action buttons
-  clearActionButtons();
-  
-  // Add labels and values to planets
-  const planets = document.querySelectorAll('#planetsGroupIngestion .planet');
-  const planetLabels = ['Events', 'Orders', 'Users'];
-  const planetValues = ['156.2K', '23.6K', '45.9K'];
-  
-  planets.forEach((planet, index) => {
-    const circle = planet.querySelector('circle');
-    const cx = circle.getAttribute('cx');
-    const cy = circle.getAttribute('cy');
-    
-    // Add label
-    const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-    label.setAttribute('x', cx);
-    label.setAttribute('y', parseFloat(cy) - 5);
-    label.setAttribute('class', 'planet-label');
-    label.textContent = planetLabels[index];
-    planet.appendChild(label);
-    
-    // Add value
-    const value = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-    value.setAttribute('x', cx);
-    value.setAttribute('y', parseFloat(cy) + 10);
-    value.setAttribute('class', 'planet-value');
-    value.textContent = planetValues[index];
-    planet.appendChild(value);
-  });
-  
-  addAIMessageBottom(`🎉 Knowledge Universe created!\n\nTransitioning to main interface...`);
-  
-  setTimeout(() => {
-    // Switch to main scene (split view)
-    transitionToMainScene();
-  }, 1500);
-}
-
-// ============================================
-// Transition to Main Scene (Split View)
-// ============================================
-
-function transitionToMainScene() {
-  showScene('main');
-  
-  // Update nav
-  document.getElementById('universeNameNav').textContent = state.universeName;
-
-  // Copy universe state to main SVG
-  buildMainUniverseView();
-
-  // Add welcome message in side panel
-  addAIMessage(
-    `✨ Universe ready!\n\n` +
-    `Your knowledge universe is now operational with ${state.dataSources.length} data planets.\n\n` +
-    `Overall data saturation: ${state.saturation}%\n\n` +
-    `💬 What would you like to know?`,
-    { noTyping: true }
-  );
-  
-  updateSuggestions([
-    { label: 'Analyze cohorts', action: () => analyzeCohort() },
-    { label: 'Find top channels', action: () => addUserMessage('Which channel has the best repeat purchase rate?') },
-    { label: 'Show trends', action: () => addAIMessage('Trend analysis coming soon!') }
-  ]);
-}
-
-function buildMainUniverseView() {
-  // Initialize SVG gradients
-  initializeSVGGradientsMain();
-  
-  // Create planets based on data sources
-  const planetConfigs = [
-    { 
-      id: 'events', 
-      label: 'User\nEvents', 
-      value: '156.2K',
-      saturation: 94,
-      x: 250, 
-      y: 300,
-      color: '#6EC287'
-    },
-    { 
-      id: 'orders', 
-      label: 'Orders', 
-      value: '23.6K\n$1.2M',
-      saturation: 89,
-      x: 550, 
-      y: 300,
-      color: '#4DD4E8'
-    },
-    { 
-      id: 'users', 
-      label: 'Users', 
-      value: '45.9K\nNew:62%',
-      saturation: 87,
-      x: 400, 
-      y: 450,
-      color: '#F4A742'
-    }
-  ];
-  
-  state.planets = planetConfigs;
-  
-  // Create planets
-  planetConfigs.forEach(config => {
-    createPlanetMain(config);
-  });
-  
-  // Create connections
-  createConnectionMain('core', 'events');
-  createConnectionMain('core', 'orders');
-  createConnectionMain('core', 'users');
-  createConnectionMain('events', 'orders');
-  createConnectionMain('orders', 'users');
-  
-  // Update saturation
-  const avgSaturation = Math.round(planetConfigs.reduce((sum, p) => sum + p.saturation, 0) / planetConfigs.length);
-  updateSaturation(avgSaturation);
-  
-  // Update core metric
-  document.getElementById('coreValue').textContent = '+28.4%';
-}
-
-function initializeSVGGradientsMain() {
-  const svg = document.getElementById('universeSvg');
-  const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
-  
-  // Core gradient
-  const coreGradient = document.createElementNS('http://www.w3.org/2000/svg', 'radialGradient');
-  coreGradient.setAttribute('id', 'coreGradient');
-  coreGradient.innerHTML = `
-    <stop offset="0%" style="stop-color:#4DD4E8;stop-opacity:1" />
-    <stop offset="100%" style="stop-color:#1B4D89;stop-opacity:1" />
-  `;
-  defs.appendChild(coreGradient);
-  
-  svg.insertBefore(defs, svg.firstChild);
-}
-
-function createPlanetMain(config) {
-  const svg = document.getElementById('universeSvg');
-  const group = document.getElementById('planetsGroup');
-  
-  const planet = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-  planet.setAttribute('class', 'planet');
-  planet.setAttribute('data-id', config.id);
-  planet.setAttribute('transform', `translate(0, 0)`);
-  
-  // Circle
-  const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-  circle.setAttribute('cx', config.x);
-  circle.setAttribute('cy', config.y);
-  circle.setAttribute('r', 40);
-  circle.setAttribute('class', 'planet-circle');
-  circle.setAttribute('fill', config.color);
-  circle.setAttribute('fill-opacity', '0.3');
-  circle.setAttribute('stroke', config.color);
-  circle.setAttribute('stroke-width', '2');
-  circle.style.filter = `drop-shadow(0 0 10px ${config.color})`;
-  
-  // Label
-  const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-  label.setAttribute('x', config.x);
-  label.setAttribute('y', config.y - 5);
-  label.setAttribute('class', 'planet-label');
-  label.textContent = config.label.split('\n')[0];
-  
-  // Value
-  const value = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-  value.setAttribute('x', config.x);
-  value.setAttribute('y', config.y + 15);
-  value.setAttribute('class', 'planet-value');
-  value.textContent = config.value.split('\n')[0];
-  
-  // Saturation
-  const saturation = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-  saturation.setAttribute('x', config.x);
-  saturation.setAttribute('y', config.y + 55);
-  saturation.setAttribute('class', 'planet-saturation');
-  saturation.textContent = config.saturation + '%';
-  
-  planet.appendChild(circle);
-  planet.appendChild(label);
-  planet.appendChild(value);
-  planet.appendChild(saturation);
-  
-  // Click handler
-  planet.addEventListener('click', (e) => {
-    e.stopPropagation();
-    selectPlanet(config.id);
-  });
-  
-  // Drag handlers
-  enablePlanetDrag(planet, config);
-  
-  group.appendChild(planet);
-}
-
-function createConnectionMain(from, to) {
-  const group = document.getElementById('connectionsGroup');
-  
-  // Get positions
-  let x1, y1, x2, y2;
-  
-  if (from === 'core') {
-    x1 = 400;
-    y1 = 300;
-  } else {
-    const fromPlanet = state.planets.find(p => p.id === from);
-    x1 = fromPlanet.x;
-    y1 = fromPlanet.y;
-  }
-  
-  const toPlanet = state.planets.find(p => p.id === to);
-  x2 = toPlanet.x;
-  y2 = toPlanet.y;
-  
-  // Create line
-  const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-  line.setAttribute('x1', x1);
-  line.setAttribute('y1', y1);
-  line.setAttribute('x2', x2);
-  line.setAttribute('y2', y2);
-  line.setAttribute('class', 'connection-line');
-  line.setAttribute('data-from', from);
-  line.setAttribute('data-to', to);
-  
-  group.insertBefore(line, group.firstChild);
-}
-
-// ============================================
-// Planet Drag & Select Functions
-// ============================================
-
-function enablePlanetDrag(planetElement, config) {
+// 卡片拖拽
+function enableCardDragSVG(foreignObject, cardData) {
   let isDragging = false;
-  let startX, startY, offsetX = 0, offsetY = 0;
+  let dragStart = { x: 0, y: 0 };
+  let cardStart = { x: 0, y: 0 };
   
-  planetElement.addEventListener('mousedown', (e) => {
-    // Only start drag if not clicking too quickly (distinguish from click)
-    const dragTimer = setTimeout(() => {
-      isDragging = true;
-      planetElement.classList.add('dragging');
-      
-      const svg = document.getElementById('universeSvg');
-      const pt = svg.createSVGPoint();
-      pt.x = e.clientX;
-      pt.y = e.clientY;
-      const svgP = pt.matrixTransform(svg.getScreenCTM().inverse());
-      
-      startX = svgP.x;
-      startY = svgP.y;
-      
-      const circle = planetElement.querySelector('circle');
-      const currentX = parseFloat(circle.getAttribute('cx'));
-      const currentY = parseFloat(circle.getAttribute('cy'));
-      
-      offsetX = currentX - startX;
-      offsetY = currentY - startY;
-    }, 150);
+  foreignObject.addEventListener('mousedown', (e) => {
+    if (e.target.classList.contains('card-action-btn')) return;
     
-    planetElement.addEventListener('mouseup', () => {
-      clearTimeout(dragTimer);
-    }, { once: true });
-  });
-  
-  document.addEventListener('mousemove', (e) => {
-    if (!isDragging) return;
-    
-    const svg = document.getElementById('universeSvg');
+    const svg = document.getElementById('unifiedSvg');
     const pt = svg.createSVGPoint();
     pt.x = e.clientX;
     pt.y = e.clientY;
     const svgP = pt.matrixTransform(svg.getScreenCTM().inverse());
     
-    const newX = svgP.x + offsetX;
-    const newY = svgP.y + offsetY;
+    isDragging = true;
+    dragStart = { x: svgP.x, y: svgP.y };
+    cardStart = { x: cardData.x, y: cardData.y };
+    e.stopPropagation();
+  });
+  
+  document.addEventListener('mousemove', (e) => {
+    if (!isDragging) return;
     
-    // Update all elements in planet group
-    const circle = planetElement.querySelector('circle');
-    const label = planetElement.querySelector('.planet-label');
-    const value = planetElement.querySelector('.planet-value');
-    const saturation = planetElement.querySelector('.planet-saturation');
+    const svg = document.getElementById('unifiedSvg');
+    const pt = svg.createSVGPoint();
+    pt.x = e.clientX;
+    pt.y = e.clientY;
+    const svgP = pt.matrixTransform(svg.getScreenCTM().inverse());
     
-    circle.setAttribute('cx', newX);
-    circle.setAttribute('cy', newY);
-    label.setAttribute('x', newX);
-    label.setAttribute('y', newY - 5);
-    value.setAttribute('x', newX);
-    value.setAttribute('y', newY + 15);
-    saturation.setAttribute('x', newX);
-    saturation.setAttribute('y', newY + 55);
+    cardData.x = cardStart.x + (svgP.x - dragStart.x);
+    cardData.y = cardStart.y + (svgP.y - dragStart.y);
+    cardData.cx = cardData.x + cardData.width / 2;
+    cardData.cy = cardData.y + cardData.height / 2;
     
-    // Update config
-    config.x = newX;
-    config.y = newY;
+    foreignObject.setAttribute('x', cardData.x);
+    foreignObject.setAttribute('y', cardData.y);
     
-    // Update connection lines
-    updateConnectionLines();
+    updateAllConnections();
   });
   
   document.addEventListener('mouseup', () => {
-    if (isDragging) {
-      isDragging = false;
-      planetElement.classList.remove('dragging');
+    isDragging = false;
+  });
+}
+
+// 更新连接线
+function updateAllConnections() {
+  connections.forEach((conn, index) => {
+    const from = cards.find(c => c.id === conn.from);
+    const to = cards.find(c => c.id === conn.to);
+    
+    if (!from || !to) return;
+    
+    const pathData = createSmoothCurve(from, to);
+    const svg = document.getElementById('connectionsGroup');
+    const allPaths = svg.querySelectorAll('.connection-line');
+    if (allPaths[index]) {
+      allPaths[index].setAttribute('d', pathData);
     }
   });
 }
 
-function updateConnectionLines() {
-  // Update all connection lines based on current planet positions
-  document.querySelectorAll('#connectionsGroup .connection-line').forEach(line => {
-    const from = line.getAttribute('data-from');
-    const to = line.getAttribute('data-to');
+// ============================================
+// 渲染连接线（贝塞尔曲线）
+// ============================================
+
+function renderConnections() {
+  const svg = document.getElementById('connectionsGroup');
+  svg.innerHTML = '';
+  
+  console.log('\n📋 === CONNECTIONS ===');
+  
+  connections.forEach((conn, index) => {
+    const from = cards.find(c => c.id === conn.from);
+    const to = cards.find(c => c.id === conn.to);
     
-    let x1, y1, x2, y2;
-    
-    if (from === 'core') {
-      x1 = 400;
-      y1 = 300;
-    } else {
-      const fromPlanet = state.planets.find(p => p.id === from);
-      x1 = fromPlanet.x;
-      y1 = fromPlanet.y;
+    if (!from || !to) {
+      console.error(`❌ #${index+1}: Missing`, conn);
+      return;
     }
     
-    const toPlanet = state.planets.find(p => p.id === to);
-    x2 = toPlanet.x;
-    y2 = toPlanet.y;
+    console.log(`#${index+1}: ${from.title} → ${to.title}`);
     
-    line.setAttribute('x1', x1);
-    line.setAttribute('y1', y1);
-    line.setAttribute('x2', x2);
-    line.setAttribute('y2', y2);
-  });
-}
-
-function selectPlanet(planetId) {
-  // Deselect all
-  document.querySelectorAll('.planet').forEach(p => {
-    p.classList.remove('selected');
+    const pathData = createSmoothCurve(from, to);
+    
+    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    path.setAttribute('d', pathData);
+    path.setAttribute('class', 'connection-line');
+    path.dataset.from = conn.from;
+    path.dataset.to = conn.to;
+    svg.appendChild(path);
   });
   
-  // Select clicked planet
-  const planet = document.querySelector(`.planet[data-id="${planetId}"]`);
-  if (planet) {
-    planet.classList.add('selected');
-    state.selectedPlanet = planetId;
-    
-    // Show planet details panel
-    showPlanetDetails(planetId);
-    
-    // Update input placeholder and style
-    const chatInput = document.getElementById('chatInput');
-    if (chatInput) {
-      const config = state.planets.find(p => p.id === planetId);
-      chatInput.placeholder = `💬 Ask about ${config.label.replace('\n', ' ')} data...`;
-      chatInput.classList.add('planet-selected');
-    }
+  console.log('=================\n');
+}
+
+function createSmoothCurve(from, to) {
+  const x1 = from.cx;
+  const y1 = from.cy;
+  const x2 = to.cx;
+  const y2 = to.cy;
+  
+  const dx = x2 - x1;
+  const dy = y2 - y1;
+  
+  const offset = Math.min(Math.abs(dx), Math.abs(dy)) * 0.6;
+  
+  if (Math.abs(dx) > Math.abs(dy)) {
+    const cx1 = x1 + offset * Math.sign(dx);
+    const cy1 = y1;
+    const cx2 = x2 - offset * Math.sign(dx);
+    const cy2 = y2;
+    return `M ${x1},${y1} C ${cx1},${cy1} ${cx2},${cy2} ${x2},${y2}`;
+  } else {
+    const cx1 = x1;
+    const cy1 = y1 + offset * Math.sign(dy);
+    const cx2 = x2;
+    const cy2 = y2 - offset * Math.sign(dy);
+    return `M ${x1},${y1} C ${cx1},${cy1} ${cx2},${cy2} ${x2},${y2}`;
   }
 }
 
-function deselectPlanet() {
-  // Remove selection
-  document.querySelectorAll('.planet').forEach(p => {
-    p.classList.remove('selected');
+// ============================================
+// 卡片选中
+// ============================================
+
+function selectCard(cardId) {
+  document.querySelectorAll('.data-card').forEach(c => c.classList.remove('selected'));
+  
+  const foreignObject = document.getElementById(`card-${cardId}`);
+  if (!foreignObject) return;
+  
+  const cardDiv = foreignObject.querySelector('.data-card');
+  if (cardDiv) cardDiv.classList.add('selected');
+  
+  selectedCard = cardId;
+  highlightConnections(cardId);
+  updateChatPanel(cardId);
+  showCardDetailOverlay(cardId);
+}
+
+function highlightConnections(cardId) {
+  document.querySelectorAll('.connection-line').forEach(line => {
+    const related = line.dataset.from === cardId || line.dataset.to === cardId;
+    line.classList.toggle('active', related);
   });
-  state.selectedPlanet = null;
+}
+
+function updateChatPanel(cardId) {
+  const cardData = cards.find(c => c.id === cardId);
+  const attachments = document.getElementById('inputAttachments');
   
-  // Hide planet details
-  document.getElementById('planetDetails').classList.add('hidden');
-  document.getElementById('chatView').classList.remove('hidden');
+  if (!attachments) return;
   
-  // Reset input placeholder and style
-  const chatInput = document.getElementById('chatInput');
+  // 清空之前的附件
+  attachments.innerHTML = '';
+  
+  // 创建附件标签
+  const tag = document.createElement('div');
+  tag.className = 'selected-card-tag';
+  tag.innerHTML = `
+    <span class="tag-icon">📎</span>
+    <span class="tag-text">${cardData.title}</span>
+    <button class="tag-close" onclick="deselectCard(); event.stopPropagation();">×</button>
+  `;
+  
+  attachments.appendChild(tag);
+  
+  // 更新placeholder
+  const chatInput = document.querySelector('.chat-input');
   if (chatInput) {
-    chatInput.placeholder = 'Ask me anything about your data...';
-    chatInput.classList.remove('planet-selected');
+    chatInput.placeholder = `Ask about ${cardData.title}...`;
   }
 }
 
-function showPlanetDetails(planetId) {
-  const config = state.planets.find(p => p.id === planetId);
-  if (!config) return;
+function showCardDetailOverlay(cardId) {
+  const cardData = cards.find(c => c.id === cardId);
   
-  // Hide chat view, show planet details
-  document.getElementById('chatView').classList.add('hidden');
-  const detailsPanel = document.getElementById('planetDetails');
-  detailsPanel.classList.remove('hidden');
+  let overlay = document.getElementById('cardDetailOverlay');
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.id = 'cardDetailOverlay';
+    overlay.className = 'card-detail-overlay';
+    document.body.appendChild(overlay);
+  }
   
-  // Update title
-  document.getElementById('planetDetailsTitle').textContent = config.label.replace('\n', ' ');
+  let detailsHTML = '';
   
-  // Generate details content
-  const content = document.getElementById('planetDetailsContent');
-  content.innerHTML = generatePlanetDetailsHTML(config);
-}
-
-function generatePlanetDetailsHTML(config) {
-  const detailsData = {
-    'events': {
-      stats: [
-        { label: 'Total Events', value: '156,234' },
-        { label: 'Unique Users', value: '45,890' },
-        { label: 'Time Range', value: 'Q1 2024' },
-        { label: 'Avg Events/User', value: '3.4' }
-      ],
-      metrics: [
-        { label: 'Page Views', value: '70,305', change: '+12.3%', positive: true },
-        { label: 'Add to Cart', value: '43,746', change: '+8.7%', positive: true },
-        { label: 'Purchases', value: '28,127', change: '+15.2%', positive: true },
-        { label: 'Signups', value: '14,056', change: '+22.1%', positive: true }
-      ],
-      insights: [
-        'Peak activity: 2-4 PM EST',
-        'Mobile traffic: 62% of total',
-        'Average session: 8.3 minutes',
-        'Bounce rate: 34.5%'
-      ]
-    },
-    'orders': {
-      stats: [
-        { label: 'Total Orders', value: '23,567' },
-        { label: 'Total Revenue', value: '$1,245,670' },
-        { label: 'Avg Order Value', value: '$52.85' },
-        { label: 'Completion Rate', value: '87.3%' }
-      ],
-      metrics: [
-        { label: 'Revenue', value: '$1.24M', change: '+18.5%', positive: true },
-        { label: 'Order Count', value: '23.6K', change: '+22.1%', positive: true },
-        { label: 'AOV', value: '$52.85', change: '-2.3%', positive: false },
-        { label: 'Repeat Orders', value: '4,892', change: '+31.2%', positive: true }
-      ],
-      insights: [
-        'Top category: Electronics (42%)',
-        'Average items per order: 2.3',
-        'Free shipping threshold: $50',
-        'Return rate: 5.2%'
-      ]
-    },
-    'users': {
-      stats: [
-        { label: 'Total Users', value: '45,890' },
-        { label: 'New Users (Q1)', value: '28,345' },
-        { label: 'Active Users', value: '31,234' },
-        { label: 'Retention Rate', value: '68.1%' }
-      ],
-      metrics: [
-        { label: 'New Signups', value: '28.3K', change: '+45.6%', positive: true },
-        { label: 'Active Rate', value: '68.1%', change: '+3.2%', positive: true },
-        { label: 'Churn Rate', value: '12.4%', change: '-2.1%', positive: true },
-        { label: 'Avg Lifetime', value: '156 days', change: '+12 days', positive: true }
-      ],
-      insights: [
-        'Top acquisition: Social (42%)',
-        'Best retention: Email users',
-        'Age group: 25-34 (48%)',
-        'Geography: 67% US, 33% International'
-      ]
-    }
-  };
-  
-  const data = detailsData[config.id] || detailsData['events'];
-  
-  let html = `
-    <div class="detail-section">
-      <h4>📊 Overview</h4>
-      ${data.stats.map(stat => `
-        <div class="detail-row">
-          <span class="detail-label">${stat.label}</span>
-          <span class="detail-value">${stat.value}</span>
-        </div>
-      `).join('')}
-    </div>
-    
-    <div class="detail-section">
-      <h4>📈 Key Metrics</h4>
-      ${data.metrics.map(metric => `
-        <div class="metric-card">
-          <div class="metric-card-header">
-            <span class="metric-label">${metric.label}</span>
-            <span class="metric-change ${metric.positive ? 'positive' : 'negative'}">${metric.change}</span>
-          </div>
-          <div class="metric-value-large">${metric.value}</div>
-        </div>
-      `).join('')}
-    </div>
-    
-    <div class="detail-section">
-      <h4>💡 Key Insights</h4>
-      <ul style="list-style: none; padding: 0;">
-        ${data.insights.map(insight => `
-          <li style="padding: 8px 0; color: rgba(232, 230, 217, 0.8);">• ${insight}</li>
-        `).join('')}
-      </ul>
-    </div>
-  `;
-  
-  return html;
-}
-
-function updateSaturation(percentage) {
-  state.saturation = percentage;
-  document.getElementById('saturationFill').style.width = percentage + '%';
-  document.getElementById('saturationText').textContent = percentage + '%';
-}
-
-// ============================================
-// Chat Functions - Side Panel (Main Scene)
-// ============================================
-
-function sendChatMessage() {
-  const input = document.getElementById('chatInput');
-  const message = input.value.trim();
-  
-  if (!message) return;
-  
-  // Add user message
-  addUserMessage(message);
-  input.value = '';
-  
-  // Handle commands
-  setTimeout(() => {
-    handleUserCommand(message);
-  }, 500);
-}
-
-function addUserMessage(text) {
-  const messagesContainer = document.getElementById('chatMessages');
-  const messageDiv = document.createElement('div');
-  messageDiv.className = 'message user';
-  
-  const time = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-  
-  messageDiv.innerHTML = `
-    <div class="message-header">
-      <span>👤 Sarah</span>
-      <span>${time}</span>
-    </div>
-    <div class="message-content">${text}</div>
-  `;
-  
-  messagesContainer.appendChild(messageDiv);
-  messagesContainer.scrollTop = messagesContainer.scrollHeight;
-  
-  state.chatHistory.push({ role: 'user', content: text, time });
-}
-
-function addAIMessage(text, options = {}) {
-  const messagesContainer = document.getElementById('chatMessages');
-  
-  // Show typing indicator
-  if (!options.noTyping) {
-    const typingDiv = document.createElement('div');
-    typingDiv.className = 'message assistant typing';
-    typingDiv.innerHTML = `
-      <div class="typing-indicator">
-        <span></span><span></span><span></span>
+  if (cardData.cardType === 'document') {
+    detailsHTML = `
+      <div style="font-size: 14px; line-height: 1.8; color: var(--text-dark); white-space: pre-line; margin-bottom: 25px;">
+        ${cardData.content.text}
+      </div>
+      <div style="padding: 16px; background: var(--bg-light); border-radius: 8px;">
+        <div style="font-size: 12px; color: var(--text-gray); margin-bottom: 8px;">📅 Last Modified: 2 days ago</div>
+        <div style="font-size: 12px; color: var(--text-gray);">👤 Author: Sarah Chen</div>
       </div>
     `;
-    messagesContainer.appendChild(typingDiv);
-    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+  } else if (cardData.cardType === 'media') {
+    const mediaHTML = cardData.content.images.map(img => `
+      <div style="background: var(--bg-light); border-radius: 8px; padding: 8px;">
+        <img src="${img.url}" alt="${img.name}" style="width: 100%; height: 140px; object-fit: cover; border-radius: 6px; margin-bottom: 8px;"/>
+        <div style="font-size: 12px; color: var(--text-dark); font-weight: 500; text-align: center;">${img.name}</div>
+      </div>
+    `).join('');
     
-    setTimeout(() => {
-      typingDiv.remove();
-      addAIMessageContent(text, options);
-    }, 1000);
+    detailsHTML = `
+      <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 25px;">
+        ${mediaHTML}
+      </div>
+      <div style="padding: 16px; background: var(--bg-light); border-radius: 8px;">
+        <div style="font-size: 12px; color: var(--text-gray);">📊 Total: ${cardData.badge} | Last Upload: Today</div>
+      </div>
+    `;
+  } else if (cardData.cardType === 'checklist') {
+    const itemsHTML = cardData.content.items.map(item => `
+      <div style="display: flex; gap: 10px; padding: 10px; background: var(--bg-light); border-radius: 6px; margin-bottom: 8px;">
+        <span style="font-size: 16px; color: ${item.done ? 'var(--accent-green)' : 'var(--text-light)'};">${item.done ? '✓' : '○'}</span>
+        <span style="flex: 1; font-size: 14px; color: var(--text-dark); ${item.done ? 'text-decoration: line-through; opacity: 0.6;' : ''}">${item.text}</span>
+      </div>
+    `).join('');
+    
+    const doneCount = cardData.content.items.filter(i => i.done).length;
+    const total = cardData.content.items.length;
+    const percent = Math.round((doneCount / total) * 100);
+    
+    detailsHTML = `
+      <div>${itemsHTML}</div>
+      <div style="margin-top: 20px; padding: 16px; background: var(--bg-light); border-radius: 8px;">
+        <div style="font-size: 12px; color: var(--text-gray);">📈 Progress: ${percent}% (${doneCount}/${total})</div>
+      </div>
+    `;
+  } else if (cardData.cardType === 'kpi') {
+    const kpiHTML = cardData.content.metrics.map(m => `
+      <div style="padding: 20px; background: var(--bg-light); border-radius: 8px;">
+        <div style="font-size: 11px; color: var(--text-gray); margin-bottom: 8px; text-transform: uppercase;">${m.label}</div>
+        <div style="font-family: var(--font-mono); font-size: 32px; color: var(--text-primary); font-weight: 600; margin-bottom: 6px;">${m.value}</div>
+        <div style="font-size: 13px; color: ${m.trend === 'up' ? 'var(--accent-green)' : '#E57373'}; font-weight: 500;">
+          ${m.trend === 'up' ? '↗' : '↘'} ${m.change} vs last period
+        </div>
+      </div>
+    `).join('');
+    
+    detailsHTML = `
+      <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 25px;">
+        ${kpiHTML}
+      </div>
+      <div style="padding: 16px; background: var(--bg-light); border-radius: 8px;">
+        <div style="font-size: 12px; color: var(--text-gray);">🔄 Real-time sync • Updated 2 minutes ago</div>
+      </div>
+    `;
   } else {
-    addAIMessageContent(text, options);
+    const statsHtml = Object.entries(cardData.stats || {}).map(([label, value]) => `
+      <div class="overlay-stat-item">
+        <div class="overlay-stat-label">${label}</div>
+        <div class="overlay-stat-value">${value}</div>
+      </div>
+    `).join('');
+    
+    detailsHTML = `<div class="overlay-stats">${statsHtml}</div>`;
   }
-}
-
-function addAIMessageContent(text, options = {}) {
-  const messagesContainer = document.getElementById('chatMessages');
-  const messageDiv = document.createElement('div');
-  messageDiv.className = 'message assistant';
   
-  const time = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-  
-  messageDiv.innerHTML = `
-    <div class="message-header">
-      <span>🤖 AI Assistant</span>
-      <span>${time}</span>
+  overlay.innerHTML = `
+    <div class="overlay-backdrop" onclick="closeCardOverlay()"></div>
+    <div class="overlay-card-large">
+      <button class="overlay-close" onclick="closeCardOverlay()">×</button>
+      <h2>${cardData.title}</h2>
+      <div class="card-meta" style="margin-bottom: 25px;">
+        <span class="card-type">${cardData.type}</span>
+        ${cardData.badge ? `<span class="card-badge" style="margin-left: 10px;">${cardData.badge}</span>` : ''}
+      </div>
+      ${detailsHTML}
     </div>
-    <div class="message-content">${text.replace(/\n/g, '<br>')}</div>
   `;
   
-  messagesContainer.appendChild(messageDiv);
-  messagesContainer.scrollTop = messagesContainer.scrollHeight;
-  
-  state.chatHistory.push({ role: 'assistant', content: text, time });
+  overlay.classList.add('active');
 }
 
-function handleUserCommand(message) {
-  const lowerMessage = message.toLowerCase();
+window.closeCardOverlay = function() {
+  const overlay = document.getElementById('cardDetailOverlay');
+  if (overlay) overlay.classList.remove('active');
+};
+
+function deselectCard() {
+  document.querySelectorAll('.data-card').forEach(c => c.classList.remove('selected'));
+  document.querySelectorAll('.connection-line').forEach(l => l.classList.remove('active'));
   
-  if (lowerMessage.includes('channel') && lowerMessage.includes('repeat')) {
-    analyzeChannelRepeatRate();
-  } else if (lowerMessage.includes('cohort')) {
-    analyzeCohort();
-  } else {
-    addAIMessage(`I understand you're asking about: "${message}"\n\nLet me analyze that for you...`);
+  // 清空输入框内的附件标签
+  const attachments = document.getElementById('inputAttachments');
+  if (attachments) {
+    attachments.innerHTML = '';
+  }
+  
+  // 恢复placeholder
+  const chatInput = document.querySelector('.chat-input');
+  if (chatInput) {
+    chatInput.placeholder = 'Ask me anything about your data...';
+  }
+  
+  // 移除面板选中态
+  const panel = document.querySelector('.info-panel');
+  if (panel) {
+    panel.classList.remove('card-selected');
+  }
+  
+  window.closeCardOverlay();
+  selectedCard = null;
+}
+
+function getConnectedCount(cardId) {
+  return connections.filter(c => c.from === cardId || c.to === cardId).length;
+}
+
+// ============================================
+// 编辑删除
+// ============================================
+
+window.editCard = function(cardId) {
+  addMessage('assistant', `Edit mode for "${cards.find(c => c.id === cardId).title}"`);
+};
+
+// ============================================
+// Auto Layout功能（一键复位）
+// ============================================
+
+window.autoLayout = function() {
+  // 重置所有卡片到初始位置
+  cards.forEach((card, index) => {
+    card.x = card.initialX;
+    card.y = card.initialY;
+    card.cx = card.x + card.width / 2;
+    card.cy = card.y + card.height / 2;
+  });
+  
+  // 重新渲染
+  renderCards();
+  renderConnections();
+  
+  // 不自动缩放，保持原始大小
+  setTimeout(() => {
+    // fitToView(); // 禁用自动缩放
+    addMessage('assistant', '✓ Layout reset to default positions');
+  }, 100);
+};
+
+// ============================================
+// Create View功能
+// ============================================
+
+window.closeViewModal = function() {
+  const modal = document.getElementById('viewModal');
+  if (modal) modal.classList.remove('active');
+};
+
+// Store selected template info
+let selectedTemplateInfo = null;
+
+// Template data
+const templateData = {
+  freeform: {
+    name: 'Free Form View',
+    desc: 'Describe your custom view requirements',
+    icon: '✨'
+  },
+  analytics: {
+    name: 'Analytics Dashboard',
+    desc: 'What metrics and KPIs would you like to track?',
+    icon: '📊'
+  },
+  monitor: {
+    name: 'Monitor Dashboard',
+    desc: 'Which real-time metrics should be monitored?',
+    icon: '📈'
+  },
+  report: {
+    name: 'Report Builder',
+    desc: 'What should be included in your report?',
+    icon: '📝'
+  },
+  goals: {
+    name: 'Goal Tracking',
+    desc: 'Define your goals and success criteria',
+    icon: '🎯'
+  },
+  sales: {
+    name: 'Sales Pipeline',
+    desc: 'What sales stages and metrics to track?',
+    icon: '💰'
+  },
+  users: {
+    name: 'User Analytics',
+    desc: 'Which user behaviors to analyze?',
+    icon: '👥'
+  },
+  financial: {
+    name: 'Financial Overview',
+    desc: 'What financial metrics to display?',
+    icon: '💵'
+  },
+  marketing: {
+    name: 'Marketing Performance',
+    desc: 'Which campaigns and channels to track?',
+    icon: '📢'
+  },
+  product: {
+    name: 'Product Metrics',
+    desc: 'Which features and adoption metrics?',
+    icon: '🚀'
+  }
+};
+
+// Select template - show requirements input
+window.selectTemplate = function(templateType) {
+  selectedTemplateInfo = {
+    type: templateType,
+    ...templateData[templateType]
+  };
+  
+  // Hide templates grid
+  document.getElementById('viewTemplatesGrid').style.display = 'none';
+  
+  // Show requirements section
+  const reqSection = document.getElementById('viewRequirementsSection');
+  reqSection.style.display = 'block';
+  
+  // Update header
+  document.getElementById('selectedTemplateName').textContent = selectedTemplateInfo.name;
+  document.getElementById('selectedTemplateDesc').textContent = selectedTemplateInfo.desc;
+  
+  // Clear and focus textarea
+  const textarea = document.getElementById('viewRequirements');
+  textarea.value = '';
+  setTimeout(() => textarea.focus(), 100);
+};
+
+// Back to templates
+window.backToTemplates = function() {
+  document.getElementById('viewRequirementsSection').style.display = 'none';
+  document.getElementById('viewTemplatesGrid').style.display = 'grid';
+  selectedTemplateInfo = null;
+};
+
+// Submit view request - start AI conversation
+window.submitViewRequest = function() {
+  const requirements = document.getElementById('viewRequirements').value.trim();
+  
+  if (!requirements) {
+    alert('Please describe your requirements');
+    return;
+  }
+  
+  // Close modal
+  window.closeViewModal();
+  
+  // Reset modal state
+  setTimeout(() => {
+    document.getElementById('viewRequirementsSection').style.display = 'none';
+    document.getElementById('viewTemplatesGrid').style.display = 'grid';
+  }, 300);
+  
+  // Start AI conversation
+  startViewCreationConversation(selectedTemplateInfo, requirements);
+};
+
+// AI conversation for view creation
+function startViewCreationConversation(template, requirements) {
+  // User message
+  addMessage('user', `I want to create a ${template.name}. Requirements:\n\n${requirements}`);
+  
+  // AI Round 1: Clarify requirements
+  setTimeout(() => {
+    addMessage('assistant', `Great! I'll help you create a ${template.name}. Let me clarify a few things:\n\n` +
+      `🎯 **Data Source**: Which datasets should I use?\n` +
+      `📅 **Time Range**: Last 7 days, 30 days, or custom?\n` +
+      `📊 **Visualization**: Prefer charts, tables, or both?\n` +
+      `🔄 **Update Frequency**: Real-time, hourly, or daily?\n\n` +
+      `Please confirm or provide more details.`);
+  }, 800);
+  
+  // Simulated user response
+  setTimeout(() => {
+    addMessage('user', 'Use our analytics dataset, last 30 days, prefer interactive charts, daily updates.');
+  }, 2500);
+  
+  // AI Round 2: Confirm layout
+  setTimeout(() => {
+    addMessage('assistant', `Perfect! Here's what I'm planning:\n\n` +
+      `📊 **Layout Structure**:\n` +
+      `• Top: Key metrics summary (4 KPI cards)\n` +
+      `• Middle: Interactive trend charts\n` +
+      `• Bottom: Detailed data table\n\n` +
+      `🎨 **Visual Style**: Clean, modern with your brand colors\n` +
+      `⚙️ **Features**: Export to PDF, share link, scheduled reports\n\n` +
+      `Does this match your expectations?`);
+  }, 3800);
+  
+  // Simulated user approval
+  setTimeout(() => {
+    addMessage('user', 'Yes, that looks perfect! Please proceed.');
+  }, 5200);
+  
+  // AI Round 3: Generate view
+  setTimeout(() => {
+    addMessage('assistant', `✅ Excellent! Generating your ${template.name}...\n\n` +
+      `⏳ Processing data sources...\n` +
+      `📊 Building visualizations...\n` +
+      `🎨 Applying styles...`);
+  }, 6000);
+  
+  // Final: View ready with link
+  setTimeout(() => {
+    const viewLink = `bi-dashboard.html?template=${template.type}&id=${Date.now()}`;
     
+    // Add text message
+    addMessage('assistant', 
+      `🎉 **Your ${template.name} is ready!**\n\n` +
+      `✨ Successfully created with:\n` +
+      `• ${template.type === 'analytics' ? 'Revenue, Users, Conversion metrics' : 'Custom metrics based on your requirements'}\n` +
+      `• Interactive visualizations\n` +
+      `• Auto-refresh enabled\n\n` +
+      `You can now customize it further or share with your team!`
+    );
+    
+    // Add view link card separately (like suggestions)
     setTimeout(() => {
-      addAIMessage(`Based on your current data, I can provide insights on:\n• Channel performance\n• Cohort analysis\n• User segmentation\n\nPlease ask a more specific question, or try one of the suggested queries!`);
-    }, 1500);
+      const container = document.getElementById('chatMessages');
+      const msgDiv = document.createElement('div');
+      msgDiv.className = 'message assistant';
+      const time = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+      
+      msgDiv.innerHTML = `
+        <div class="message-header">
+          <span>🤖 AI</span>
+          <span>${time}</span>
+        </div>
+        <div class="message-content">
+          <a href="${viewLink}" target="_blank" class="view-link-card" onclick="return openViewInNewTab(this.href)">
+            <span class="view-link-icon">${template.icon}</span>
+            <div class="view-link-content">
+              <div class="view-link-title">${template.name}</div>
+              <div class="view-link-desc">Click to open in new tab</div>
+            </div>
+          </a>
+        </div>
+      `;
+      
+      container.appendChild(msgDiv);
+      container.scrollTop = container.scrollHeight;
+    }, 300);
+  }, 7500);
+}
+
+// Open view in new tab
+window.openViewInNewTab = function(url) {
+  window.open(url, '_blank');
+  return false;
+};
+
+// Legacy function for compatibility
+window.createView = function(viewType) {
+  selectTemplate(viewType);
+};
+
+window.deleteCard = function(cardId) {
+  const cardData = cards.find(c => c.id === cardId);
+  addMessage('assistant', `Deleting "${cardData.title}"...`);
+  
+  const cardEl = document.getElementById(`card-${cardId}`);
+  cardEl.style.opacity = '0';
+  
+  setTimeout(() => {
+    const index = cards.findIndex(c => c.id === cardId);
+    if (index > -1) cards.splice(index, 1);
+    
+    renderCards();
+    renderConnections();
+    addMessage('assistant', `✓ Removed`);
+    deselectCard();
+  }, 300);
+};
+
+// ============================================
+// ============================================
+// 数据总览功能
+// ============================================
+
+function updateDataOverview() {
+  // 计算统计数据
+  const totalNodes = cards.length;
+  const dataCards = cards.filter(c => c.type === 'Data').length;
+  const documentCards = cards.filter(c => c.type === 'Document').length;
+  const mediaCards = cards.filter(c => c.type === 'Media').length;
+  const kpiCards = cards.filter(c => c.type === 'KPI').length;
+  const checklistCards = cards.filter(c => c.type === 'Checklist').length;
+  
+  // 计算主体数（不同类型）
+  const subjects = new Set(cards.map(c => c.type)).size;
+  
+  // 计算数据饱和度（基于badge值）
+  let totalSaturation = 0;
+  let saturationCount = 0;
+  cards.forEach(card => {
+    if (card.badge && card.badge.includes('%')) {
+      const value = parseInt(card.badge.replace('%', ''));
+      totalSaturation += value;
+      saturationCount++;
+    }
+  });
+  const avgSaturation = saturationCount > 0 ? Math.round(totalSaturation / saturationCount) : 78;
+  
+  // 计算数据量（模拟）
+  const dataSize = (totalNodes * 0.057).toFixed(1) + 'GB';
+  
+  // 更新DOM
+  document.getElementById('dataSaturation').textContent = avgSaturation + '%';
+  document.getElementById('totalSubjects').textContent = subjects;
+  document.getElementById('totalNodes').textContent = totalNodes;
+  document.getElementById('totalDataSize').textContent = dataSize;
+  
+  // 更新饱和度进度条
+  const saturationFill = document.querySelector('.saturation-fill');
+  if (saturationFill) {
+    saturationFill.style.width = avgSaturation + '%';
   }
 }
 
-function updateSuggestions(suggestions) {
-  const container = document.getElementById('suggestionsChips');
-  container.innerHTML = '';
+// 处理数据上传
+window.handleUploadData = function() {
+  // 创建一个隐藏的文件输入
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.multiple = true;
+  input.accept = '.csv,.json,.xlsx,.txt';
   
-  suggestions.forEach(suggestion => {
-    const chip = document.createElement('div');
-    chip.className = 'suggestion-chip';
-    chip.textContent = suggestion.label;
-    chip.addEventListener('click', suggestion.action);
-    container.appendChild(chip);
+  input.onchange = (e) => {
+    const files = e.target.files;
+    if (files.length > 0) {
+      // 模拟上传效果
+      const uploadBtn = document.querySelector('.btn-upload-data');
+      const originalText = uploadBtn.innerHTML;
+      uploadBtn.innerHTML = '<span>上传中...</span>';
+      uploadBtn.disabled = true;
+      
+      setTimeout(() => {
+        // 添加新卡片（模拟）
+        const newCard = {
+          id: 'upload-' + Date.now(),
+          title: files[0].name.split('.')[0],
+          type: 'Data',
+          badge: '95%',
+          row: 1,
+          col: 8,
+          stats: { 
+            'Size': (files[0].size / 1024 / 1024).toFixed(2) + 'MB',
+            'Type': files[0].name.split('.').pop().toUpperCase(),
+            'Rows': Math.floor(Math.random() * 10000) + 'K',
+            'Status': 'Ready'
+          }
+        };
+        
+        cards.push(newCard);
+        calculateCardPosition(newCard, cards.length - 1);
+        
+        // 重新渲染
+        renderCards();
+        renderConnections();
+        updateDataOverview();
+        
+        // 恢复按钮
+        uploadBtn.innerHTML = originalText;
+        uploadBtn.disabled = false;
+        
+        // 显示成功消息
+        addMessage('assistant', `成功上传文件 "${files[0].name}"！已创建新的数据节点。数据饱和度提升至 ${document.getElementById('dataSaturation').textContent}。`);
+      }, 1500);
+    }
+  };
+  
+  input.click();
+}
+
+// 会话
+// ============================================
+
+function handleChat() {
+  const input = document.querySelector('.chat-input');
+  const msg = input.value.trim();
+  
+  if (!msg) return;
+  
+  addMessage('user', msg);
+  input.value = '';
+  
+  const lowerMsg = msg.toLowerCase();
+  
+  // Delete命令
+  if (lowerMsg.startsWith('delete ')) {
+    const name = msg.substring(7).trim();
+    const card = cards.find(c => c.title.toLowerCase() === name.toLowerCase());
+    
+    if (card) {
+      window.deleteCard(card.id);
+    } else {
+      addMessage('assistant', `Not found: "${name}"`);
+    }
+  }
+  // Advice命令
+  else if (lowerMsg === 'advice' || lowerMsg === '/advice') {
+    showAISuggestions();
+  }
+  else {
+    addMessage('assistant', `Received: "${msg}"`);
+  }
+}
+
+// 显示初始建议
+function showInitialSuggestions() {
+  const introMsg = `Your knowledge universe is ready! I've analyzed ${cards.length} data nodes.`;
+  
+  addMessage('assistant', introMsg);
+  
+  setTimeout(() => {
+    showAISuggestions();
+  }, 500);
+}
+
+// 生成AI建议
+function showAISuggestions() {
+  const suggestions = [
+    {
+      icon: '⚠️',
+      title: 'Your data saturation is at 78%',
+      description: 'We recommend uploading additional data sources (marketing attribution, support tickets) to improve analysis quality and unlock deeper insights.',
+      action: 'Click to upload more data',
+      command: 'add-data'
+    },
+    {
+      icon: '📊',
+      title: 'Analyze user cohorts for retention insights',
+      description: 'Run a cohort analysis to identify which user groups have the best retention rates and understand what drives long-term engagement.',
+      action: 'Run cohort analysis',
+      command: 'analyze-cohorts'
+    },
+    {
+      icon: '🎯',
+      title: 'Optimize your conversion funnel',
+      description: 'Identify specific drop-off points in your checkout flow and get actionable recommendations to improve conversion rates.',
+      action: 'Analyze conversion funnel',
+      command: 'analyze-funnel'
+    }
+  ];
+  
+  const suggestionsHTML = suggestions.map(s => `
+    <div class="suggestion-card" onclick="executeSuggestion('${s.command}', '${s.action}')">
+      <div class="suggestion-header">
+        <span class="suggestion-icon">${s.icon}</span>
+        <span class="suggestion-title">${s.title}</span>
+      </div>
+      <div class="suggestion-desc">${s.description}</div>
+      <div class="suggestion-action">→ ${s.action}</div>
+    </div>
+  `).join('');
+  
+  const msgDiv = document.createElement('div');
+  msgDiv.className = 'message assistant';
+  const time = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+  
+  msgDiv.innerHTML = `
+    <div class="message-header">
+      <span>🤖 AI</span>
+      <span>${time}</span>
+    </div>
+    <div class="message-content">
+      Here are some recommendations based on your data:
+      <div style="margin-top: 10px;">
+        ${suggestionsHTML}
+      </div>
+    </div>
+  `;
+  
+  const container = document.getElementById('chatMessages');
+  container.appendChild(msgDiv);
+  container.scrollTop = container.scrollHeight;
+}
+
+// 执行建议
+window.executeSuggestion = function(command, action) {
+  // 发送为用户消息
+  addMessage('user', action);
+  
+  // AI响应
+  setTimeout(() => {
+    if (command === 'add-data') {
+      addMessage('assistant', 'To improve data saturation, please upload:\n• Marketing channel attribution data\n• Customer support tickets\n• Product catalog with metadata');
+    } else if (command === 'analyze-cohorts') {
+      addMessage('assistant', 'Running cohort analysis...\n\n📊 January cohort: 78% Week-1 retention\n📊 February cohort: 82% Week-1 retention (+5.1%)\n\n💡 February shows better retention due to onboarding improvements.');
+    } else if (command === 'analyze-funnel') {
+      addMessage('assistant', 'Conversion funnel analysis:\n\n• Visit → Cart: 12.5% ✓\n• Cart → Checkout: 68% ⚠️ Drop-off here\n• Checkout → Payment: 82% ✓\n\n💡 Focus on cart abandonment emails and checkout UX.');
+    }
+  }, 800);
+};
+
+function addMessage(role, content, allowHTML = false) {
+  const container = document.getElementById('chatMessages');
+  const msg = document.createElement('div');
+  msg.className = `message ${role}`;
+  const time = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+  
+  // Format content - either allow HTML or escape and replace newlines
+  const formattedContent = allowHTML ? content : content.replace(/\n/g, '<br>');
+  
+  msg.innerHTML = `
+    <div class="message-header">
+      <span>${role === 'user' ? '👤 Sarah' : '🤖 AI'}</span>
+      <span>${time}</span>
+    </div>
+    <div class="message-content">${formattedContent}</div>
+  `;
+  
+  container.appendChild(msg);
+  container.scrollTop = container.scrollHeight;
+}
+
+// ============================================
+// 缩放拖拽
+// ============================================
+
+function initZoomAndPan() {
+  const canvas = document.querySelector('.card-network-canvas');
+  
+  canvas.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    const delta = e.deltaY > 0 ? -0.1 : 0.1;
+    zoomLevel = Math.max(0.3, Math.min(2, zoomLevel + delta));
+    applyTransform();
+  });
+  
+  let isPanning = false;
+  let panStart = { x: 0, y: 0 };
+  
+  canvas.addEventListener('mousedown', (e) => {
+    if (e.target === canvas || e.target.id === 'unifiedSvg' || e.target.id === 'connectionsGroup' || e.target.id === 'cardsGroup') {
+      isPanning = true;
+      panStart = { x: e.clientX - panOffset.x, y: e.clientY - panOffset.y };
+      canvas.style.cursor = 'grabbing';
+    }
+  });
+  
+  document.addEventListener('mousemove', (e) => {
+    if (!isPanning) return;
+    panOffset.x = e.clientX - panStart.x;
+    panOffset.y = e.clientY - panStart.y;
+    applyTransform();
+  });
+  
+  document.addEventListener('mouseup', () => {
+    isPanning = false;
+    canvas.style.cursor = '';
   });
 }
 
-// ============================================
-// Analysis Functions
-// ============================================
-
-function analyzeChannelRepeatRate() {
-  addUserMessage('Which channel has the best repeat purchase rate?');
-  
-  setTimeout(() => {
-    addAIMessage(
-      `Based on your Q1 data analysis:\n\n` +
-      `🏆 **Email Marketing** has the highest repeat purchase rate!\n\n` +
-      `📊 Comparison:\n\n` +
-      `**Email:** 34.2% (1,245 / 3,640)\n` +
-      `**Direct:** 28.7% (1,867 / 6,502)\n` +
-      `**Social:** 18.9% (1,890 / 9,998)\n` +
-      `**Search:** 15.3% (1,034 / 6,756)\n\n` +
-      `💡 Key Insight:\n` +
-      `Email subscribers show 2.2× higher loyalty than average. Consider increasing email marketing investment for better customer retention.`
-    );
-    
-    updateSuggestions([
-      { label: 'Analyze email campaigns', action: () => analyzeEmailCampaigns() },
-      { label: 'Compare cohorts', action: () => analyzeCohort() },
-      { label: 'Export results', action: () => exportAnalysis() }
-    ]);
-  }, 1500);
-}
-
-function analyzeCohort() {
-  addUserMessage('Create a cohort analysis for users who signed up in January');
-  
-  setTimeout(() => {
-    addAIMessage(`✓ Task created! Analyzing January 2024 cohort...`);
-    
-    setTimeout(() => {
-      addAIMessage(
-        `✅ Cohort Analysis Complete!\n\n` +
-        `📊 **January 2024 Cohort**\n` +
-        `Total Users: 12,345\n` +
-        `Time Period: 8 weeks\n\n` +
-        `**Retention Curve:**\n` +
-        `Week 1: 78%\n` +
-        `Week 2: 56% ⚠️\n` +
-        `Week 3: 45%\n` +
-        `Week 4: 38%\n` +
-        `Week 5: 35%\n` +
-        `Week 6: 32%\n` +
-        `Week 7: 30%\n` +
-        `Week 8: 29%\n\n` +
-        `💡 Key Insights:\n` +
-        `• Sharp drop in Week 2 (-22%)\n` +
-        `• Stabilizes at Week 7 (~30%)\n` +
-        `• Consider re-engagement campaign for Week 2 users`
-      );
-      
-      updateSuggestions([
-        { label: 'Compare other cohorts', action: () => compareCohorts() },
-        { label: 'Analyze drop reasons', action: () => analyzeDropReasons() },
-        { label: 'Export report', action: () => exportAnalysis() }
-      ]);
-    }, 2000);
-  }, 500);
+function applyTransform() {
+  const transform = `translate(${panOffset.x / zoomLevel}, ${panOffset.y / zoomLevel}) scale(${zoomLevel})`;
+  document.getElementById('connectionsGroup').setAttribute('transform', transform);
+  document.getElementById('cardsGroup').setAttribute('transform', transform);
 }
 
 // ============================================
-// Additional Analysis Functions
+// 事件监听
 // ============================================
 
-function analyzeEmailCampaigns() {
-  addUserMessage('Analyze email campaigns performance');
+function initEventListeners() {
+  // Profile菜单
+  const profileBtn = document.getElementById('profileMenuBtn');
+  const profileDropdown = document.getElementById('profileDropdown');
   
-  setTimeout(() => {
-    addAIMessage(`Analyzing email campaign data...`);
+  if (profileBtn && profileDropdown) {
+    profileBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      profileDropdown.classList.toggle('hidden');
+    });
     
-    setTimeout(() => {
-      addAIMessage(
-        `📧 **Email Campaign Analysis (Q1 2024)**\n\n` +
-        `**Campaign Performance:**\n` +
-        `• Welcome Series: 48.2% open rate, 12.3% CTR\n` +
-        `• Weekly Newsletter: 32.5% open rate, 5.7% CTR\n` +
-        `• Flash Sale: 55.8% open rate, 18.9% CTR\n` +
-        `• Cart Abandonment: 41.3% open rate, 23.4% CTR\n\n` +
-        `**Revenue Attribution:**\n` +
-        `• Cart Abandonment: $145K (42%)\n` +
-        `• Flash Sale: $98K (28%)\n` +
-        `• Newsletter: $67K (19%)\n` +
-        `• Welcome Series: $38K (11%)\n\n` +
-        `💡 **Recommendations:**\n` +
-        `• Increase cart abandonment frequency (currently 24h delay)\n` +
-        `• A/B test flash sale subject lines\n` +
-        `• Segment newsletter by user behavior`
-      );
-      
-      updateSuggestions([
-        { label: 'Deep dive cart abandonment', action: () => addUserMessage('Analyze cart abandonment flow') },
-        { label: 'Segment analysis', action: () => addUserMessage('Show email performance by user segment') },
-        { label: 'Create campaign', action: () => addAIMessage('Campaign builder coming soon!') }
-      ]);
-    }, 2000);
-  }, 500);
-}
-
-function compareCohorts() {
-  addUserMessage('Compare January vs February cohorts');
-  
-  setTimeout(() => {
-    addAIMessage(`Comparing cohorts...`);
-    
-    setTimeout(() => {
-      addAIMessage(
-        `📊 **Cohort Comparison: Jan vs Feb 2024**\n\n` +
-        `**Cohort Size:**\n` +
-        `• January: 12,345 users\n` +
-        `• February: 14,892 users (+20.6%)\n\n` +
-        `**Week 4 Retention:**\n` +
-        `• January: 38% retention\n` +
-        `• February: 42% retention (↗ +10.5%)\n\n` +
-        `**Average Order Value:**\n` +
-        `• January: $67.30\n` +
-        `• February: $71.20 (↗ +5.8%)\n\n` +
-        `**Conversion to Purchase:**\n` +
-        `• January: 18.5%\n` +
-        `• February: 21.3% (↗ +15.1%)\n\n` +
-        `💡 **Key Finding:**\n` +
-        `February cohort shows significantly better performance across all metrics. This aligns with Valentine's Day campaign launch and improved onboarding flow.`
-      );
-      
-      updateSuggestions([
-        { label: 'Analyze March cohort', action: () => addUserMessage('How did March cohort perform?') },
-        { label: 'What changed?', action: () => addUserMessage('What caused February improvement?') }
-      ]);
-    }, 2000);
-  }, 500);
-}
-
-function analyzeDropReasons() {
-  addUserMessage('Why do users drop off in Week 2?');
-  
-  setTimeout(() => {
-    addAIMessage(`Analyzing user drop-off patterns...`);
-    
-    setTimeout(() => {
-      addAIMessage(
-        `🔍 **Week 2 Drop-off Analysis**\n\n` +
-        `**Drop-off Triggers (Top 5):**\n` +
-        `1. No purchase within 7 days: 34.2%\n` +
-        `2. High cart abandonment: 23.7%\n` +
-        `3. Poor mobile experience: 18.9%\n` +
-        `4. Slow shipping times: 12.4%\n` +
-        `5. Limited payment options: 10.8%\n\n` +
-        `**User Segments Most Affected:**\n` +
-        `• Mobile-only users: 67% drop rate\n` +
-        `• International users: 54% drop rate\n` +
-        `• First-time buyers: 48% drop rate\n\n` +
-        `💡 **Actionable Fixes:**\n` +
-        `• Send "special offer" email at Day 5\n` +
-        `• Optimize mobile checkout (reduce steps)\n` +
-        `• Add Apple Pay / Google Pay\n` +
-        `• Highlight express shipping option\n\n` +
-        `**Potential Impact:** Could reduce drop-off by 15-20%`
-      );
-      
-      updateSuggestions([
-        { label: 'Test retention campaign', action: () => addAIMessage('Campaign simulation: +12% retention expected') },
-        { label: 'Mobile UX analysis', action: () => addAIMessage('Mobile funnel shows 3.2× more drop-offs at checkout') }
-      ]);
-    }, 2500);
-  }, 500);
-}
-
-function exportAnalysis() {
-  addUserMessage('Export current analysis');
-  
-  setTimeout(() => {
-    addAIMessage(
-      `📤 **Preparing Export...**\n\n` +
-      `Format: Comprehensive PDF Report\n` +
-      `Content: All analyses + visualizations\n` +
-      `Size: ~3.2 MB\n\n` +
-      `⏳ Generating...`
-    );
-    
-    setTimeout(() => {
-      addAIMessage(
-        `✅ **Export Ready!**\n\n` +
-        `📄 Q1_Analysis_Report.pdf\n` +
-        `• 18 pages of insights\n` +
-        `• 12 visualizations\n` +
-        `• Executive summary included\n\n` +
-        `[Download] button would appear here in production.`
-      );
-    }, 2000);
-  }, 500);
-}
-
-// ============================================
-// Demo Data
-// ============================================
-
-function loadDemoData() {
-  state.dataSources = [
-    { name: 'user_events_q1.csv', size: 2800000, rows: 156234, columns: 12 },
-    { name: 'orders_2024q1.xlsx', size: 1200000, rows: 23567, columns: 18 },
-    { name: 'user_profiles.json', size: 856000, rows: 45890, columns: 8 }
-  ];
-  
-  addUserMessageBottom('Load demo data');
-  
-  setTimeout(() => {
-    addAIMessageBottom(`Loading demo dataset...\n\n✓ Loaded 3 files\n✓ Total: ${state.dataSources.reduce((sum, ds) => sum + ds.rows, 0).toLocaleString()} rows\n\nStarting auto-cleaning...`);
-    
-    setTimeout(() => {
-      startDataCleaningOnUniverse();
-    }, 1000);
-  }, 500);
-}
-
-// ============================================
-// View Creation
-// ============================================
-
-function createView(type) {
-  hideModal('createViewModal');
-  
-  const viewNames = {
-    'analytics': 'Analytics Dashboard',
-    'monitor': 'Monitor Dashboard',
-    'notes': 'Notes & Insights',
-    'goals': 'Goal Tracking'
-  };
-  
-  addAIMessage(`Creating ${viewNames[type]}...`);
-  
-  setTimeout(() => {
-    if (type === 'monitor') {
-      addAIMessage(
-        `✅ Monitor Dashboard Created!\n\n` +
-        `📊 **Real-time Metrics Tracking:**\n` +
-        `• Daily Active Users: 12,456 (↗ +8.3%)\n` +
-        `• Conversion Rate: 3.2% (↗ +0.4%)\n` +
-        `• Average Order Value: $87.50 (↘ -2.1%)\n` +
-        `• Revenue: $35,234 (↗ +12.7%)\n\n` +
-        `🔔 Alerts configured:\n` +
-        `• Conversion rate drops >10%\n` +
-        `• Revenue anomaly detection\n` +
-        `• Traffic spike alerts\n\n` +
-        `Dashboard is now active and monitoring your metrics!`
-      );
-    } else if (type === 'analytics') {
-      addAIMessage(
-        `✅ Analytics Dashboard Created!\n\n` +
-        `📈 **Key Insights:**\n` +
-        `• Top performing product: Wireless Headphones ($45K revenue)\n` +
-        `• Best converting channel: Email (4.8%)\n` +
-        `• Peak traffic time: 2-4 PM EST\n` +
-        `• Mobile conversion: 2.1% vs Desktop: 4.5%\n\n` +
-        `💡 Recommendations:\n` +
-        `• Optimize mobile checkout flow\n` +
-        `• Increase email campaign frequency\n` +
-        `• Focus inventory on top 20 products`
-      );
-    } else if (type === 'goals') {
-      addAIMessage(
-        `✅ Goal Tracking Created!\n\n` +
-        `🎯 **Q2 Goals Progress:**\n` +
-        `• Revenue Target: $500K\n` +
-        `  Current: $387K (77% ████████░░)\n\n` +
-        `• New Users: 50K\n` +
-        `  Current: 43.2K (86% ████████▓░)\n\n` +
-        `• Conversion Rate: 4.5%\n` +
-        `  Current: 3.8% (84% ████████▓░)\n\n` +
-        `On track to meet 2/3 goals! 🚀`
-      );
-    } else if (type === 'notes') {
-      addAIMessage(
-        `✅ Notes & Insights Created!\n\n` +
-        `📝 **Saved Insights:**\n` +
-        `• Email marketing shows 2.2× better retention\n` +
-        `• Week 2 user drop-off needs attention\n` +
-        `• Social media drives volume but lower quality\n\n` +
-        `You can now add notes and tag important findings as you explore your data.`
-      );
-    }
-    
-    updateSuggestions([
-      { label: 'View Dashboard', action: () => addAIMessage('Dashboard view will open in a separate tab.') },
-      { label: 'Customize Widgets', action: () => addAIMessage('You can add/remove widgets and customize the layout.') },
-      { label: 'Continue Analysis', action: () => addAIMessage('What else would you like to analyze?') }
-    ]);
-  }, 1500);
-}
-
-// ============================================
-// Modal Functions
-// ============================================
-
-function showModal(modalId) {
-  const modal = document.getElementById(modalId);
-  if (modal) {
-    modal.classList.add('active');
+    document.addEventListener('click', () => {
+      profileDropdown.classList.add('hidden');
+    });
   }
-}
-
-function hideModal(modalId) {
-  const modal = document.getElementById(modalId);
+  
+  // Create View按钮
+  const createViewBtn = document.getElementById('createViewBtn');
+  if (createViewBtn) {
+    createViewBtn.addEventListener('click', () => {
+      const modal = document.getElementById('viewModal');
+      if (modal) modal.classList.add('active');
+    });
+  }
+  
+  // 建议按钮
+  const adviceBtn = document.getElementById('btnAdvice');
+  if (adviceBtn) {
+    adviceBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      addMessage('user', '/advice');
+      showAISuggestions();
+    });
+  }
+  
+  // 会话输入
+  const chatInput = document.querySelector('.chat-input');
+  const sendBtn = document.querySelector('.btn-send');
+  
+  if (chatInput && sendBtn) {
+    sendBtn.addEventListener('click', handleChat);
+    chatInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        handleChat();
+      }
+    });
+    
+    // 输入时自动补全/advice
+    chatInput.addEventListener('input', (e) => {
+      const val = e.target.value.toLowerCase();
+      if (val === 'advice' || val === 'advi' || val === 'adv') {
+        // 可以显示补全提示
+      }
+    });
+  }
+  
+  // 点击空白取消选中
+  const canvas = document.querySelector('.card-network-canvas');
+  canvas.addEventListener('click', (e) => {
+    if (e.target === canvas || e.target.id === 'unifiedSvg' || e.target.id === 'connectionsGroup' || e.target.id === 'cardsGroup') {
+      deselectCard();
+    }
+  });
+  
+  // 关闭弹窗
+  const modalClose = document.getElementById('modalClose');
+  const modal = document.getElementById('cardDetailModal');
+  
+  if (modalClose) {
+    modalClose.addEventListener('click', () => modal.classList.remove('active'));
+  }
+  
   if (modal) {
-    modal.classList.remove('active');
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) modal.classList.remove('active');
+    });
   }
 }

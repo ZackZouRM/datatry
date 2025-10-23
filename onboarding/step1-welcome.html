@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome - Knowledge Universe</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="onboarding.css">
+</head>
+<body>
+    <!-- Progress Bar -->
+    <div class="progress-container">
+        <div class="progress-bar" id="progressBar" style="width: 20%;"></div>
+    </div>
+    
+    <!-- Step Indicator -->
+    <div class="step-indicator">Step 1 of 5</div>
+    
+    <!-- Main Content -->
+    <div class="onboarding-container">
+        <h1>Welcome to Knowledge Universe</h1>
+        <p class="subtitle">Let's start by naming your knowledge space</p>
+        
+        <div class="input-group">
+            <label for="universeName">Project Name</label>
+            <input 
+                type="text" 
+                id="universeName" 
+                placeholder="e.g., Q1 Growth Analysis" 
+                value="Q1 Growth Analysis"
+                autofocus
+            >
+        </div>
+        
+        <button class="btn btn-primary btn-large" id="btnCreateSpace">
+            <span>Create Space</span>
+            <span>→</span>
+        </button>
+    </div>
+    
+    <script src="onboarding.js"></script>
+    <script>
+        const universeNameInput = document.getElementById('universeName');
+        const btnCreateSpace = document.getElementById('btnCreateSpace');
+        
+        // Enable/disable button based on input
+        function checkInput() {
+            const value = universeNameInput.value.trim();
+            btnCreateSpace.disabled = value.length === 0;
+        }
+        
+        universeNameInput.addEventListener('input', checkInput);
+        
+        // Handle Enter key
+        universeNameInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !btnCreateSpace.disabled) {
+                createSpace();
+            }
+        });
+        
+        // Create space and navigate to next step
+        btnCreateSpace.addEventListener('click', createSpace);
+        
+        function createSpace() {
+            const name = universeNameInput.value.trim();
+            if (name) {
+                saveData({ universe_name: name });
+                goToStep(2);
+            }
+        }
+        
+        // Initialize (demo mode: always start fresh)
+        document.addEventListener('DOMContentLoaded', () => {
+            checkInput();
+        });
+    </script>
+</body>
+</html>
+

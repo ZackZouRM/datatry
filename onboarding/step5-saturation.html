@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Saturation - Knowledge Universe</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="onboarding.css">
+</head>
+<body>
+    <!-- Progress Bar -->
+    <div class="progress-container">
+        <div class="progress-bar" id="progressBar" style="width: 100%;"></div>
+    </div>
+    
+    <!-- Step Indicator -->
+    <div class="step-indicator">Step 5 of 5</div>
+    
+    <!-- Main Content -->
+    <div class="onboarding-container">
+        <h2>Data Saturation Assessment</h2>
+        <p class="subtitle">Evaluating your data completeness</p>
+        
+        <!-- Saturation Display -->
+        <div class="saturation-display">
+            <div class="saturation-value good" id="saturationValue">78%</div>
+            <div class="saturation-label">Data Saturation</div>
+            <div class="saturation-status good" id="saturationStatus">Good - Ready for Analysis</div>
+        </div>
+        
+        <!-- Insights -->
+        <div class="insights-list">
+            <h3>✅ What You Can Do:</h3>
+            <ul>
+                <li>User cohort analysis</li>
+                <li>Retention funnel tracking</li>
+                <li>Channel performance comparison</li>
+                <li>Growth trend forecasting</li>
+                <li>Customer segmentation</li>
+            </ul>
+        </div>
+        
+        <div class="insights-list" style="background: rgba(245, 158, 11, 0.05); border-left: 4px solid var(--warning-orange);">
+            <h3>💡 To Unlock More Insights (+15% saturation):</h3>
+            <ul style="list-style: none;">
+                <li style="color: var(--text-secondary);">
+                    <span style="margin-right: 8px;">+5%</span>
+                    Add customer support tickets
+                </li>
+                <li style="color: var(--text-secondary);">
+                    <span style="margin-right: 8px;">+5%</span>
+                    Add marketing campaign data
+                </li>
+                <li style="color: var(--text-secondary);">
+                    <span style="margin-right: 8px;">+5%</span>
+                    Add product inventory data
+                </li>
+            </ul>
+        </div>
+        
+        <!-- Action Buttons -->
+        <div class="action-buttons" style="margin-top: 48px;">
+            <button class="btn btn-secondary" onclick="uploadMore()">
+                <span>📤</span>
+                <span>Upload More Data</span>
+            </button>
+            <button class="btn btn-primary btn-large" onclick="goToDashboard()">
+                <span>Continue to Dashboard</span>
+                <span>→</span>
+            </button>
+        </div>
+    </div>
+    
+    <script src="onboarding.js"></script>
+    <script>
+        const saturationValue = document.getElementById('saturationValue');
+        const saturationStatus = document.getElementById('saturationStatus');
+        
+        // Calculate saturation based on data
+        function calculateSaturation() {
+            const data = getData();
+            let saturation = 50; // Base score
+            
+            // Add points for data sources
+            if (data.data_sources && data.data_sources.length > 0) {
+                saturation += Math.min(data.data_sources.length * 5, 20);
+            }
+            
+            // Add points for business context
+            if (data.business_context.phase1 === 'confirmed' || data.business_context.phase1 === 'clarified') {
+                saturation += 10;
+            }
+            if (data.business_context.phase2 === 'confirmed' || data.business_context.phase2 === 'adjusted') {
+                saturation += 10;
+            }
+            if (data.business_context.phase3 === 'confirmed' || data.business_context.phase3 === 'adjusted') {
+                saturation += 10;
+            }
+            
+            return Math.min(saturation, 100);
+        }
+        
+        // Display saturation
+        function displaySaturation() {
+            const saturation = calculateSaturation();
+            
+            // Save to data
+            saveData({ saturation: saturation });
+            
+            // Update display
+            saturationValue.textContent = saturation + '%';
+            
+            // Update status based on value
+            saturationValue.className = 'saturation-value';
+            saturationStatus.className = 'saturation-status';
+            
+            if (saturation >= 80) {
+                saturationValue.classList.add('excellent');
+                saturationStatus.classList.add('excellent');
+                saturationStatus.textContent = 'Excellent - Ready for Advanced Analysis';
+            } else if (saturation >= 60) {
+                saturationValue.classList.add('good');
+                saturationStatus.classList.add('good');
+                saturationStatus.textContent = 'Good - Ready for Analysis';
+            } else {
+                saturationValue.classList.add('low');
+                saturationStatus.classList.add('low');
+                saturationStatus.textContent = 'Low - More Data Recommended';
+            }
+            
+            // Animate the percentage
+            let current = 0;
+            const target = saturation;
+            const increment = target / 50; // 50 frames
+            
+            const animation = setInterval(() => {
+                current += increment;
+                if (current >= target) {
+                    current = target;
+                    clearInterval(animation);
+                }
+                saturationValue.textContent = Math.round(current) + '%';
+            }, 20);
+        }
+        
+        // Upload more data
+        window.uploadMore = function() {
+            // Go back to step 2 to upload more
+            goToStep(2);
+        };
+        
+        // Go to dashboard
+        window.goToDashboard = function() {
+            // Clear demo data (for next session)
+            clearData();
+            
+            // Navigate to main app
+            goToMainApp();
+        };
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            // Delay before showing saturation
+            setTimeout(() => {
+                displaySaturation();
+            }, 500);
+        });
+    </script>
+</body>
+</html>
+
